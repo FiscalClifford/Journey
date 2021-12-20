@@ -13,15 +13,56 @@ function onDeviceReady() {
     document.getElementById('deviceready').classList.add('ready');
 }
 
-var tile = new obj
+var tile = {
+    terrain: {
+        grassland = true,
+        hills = false,
+        mountain = false,
+        water = false,
+        road = false,
+        town = false,
+        swampy = false,
+        tundra = false,
+        ruins = false,
+        landmark = 'none', // none, spire, crater, gash
+        trees = 'sparse', // sparse, moderate, forest
+        rocks = 'sparse', // sparse, moderate, rocky
+        wildlife = 'sparse', // sparse, moderate, flourishing
+        flowers = 'sparse' // sparse, moderate, fields
+    },
+    // coordinates: [x,y],
+    // function setCoord(x,y){
+    //     this.coordinates = [x,y];
+    // },
+    //neighboring tiles
+    N: [x,y],
+    E: [x,y],
+    S: [x,y],
+    W: [x,y],
+};
 
-function generateWorld(x, y, mountains, water, towns){
-    let grid = [x,y];
-    for (x of y){
+function createArray(length) {
+    let arr = new Array(length || 0),
+        i = length;
+
+    if (arguments.length > 1) {
+        let args = Array.prototype.slice.call(arguments, 1);
+        while(i--) arr[length-1 - i] = createArray.apply(this, args);
+    }
+
+    return arr;
+}
+
+function generateWorld(x, y,){
+    let grid = createArray(x, y);
+    for (let i=0; i<x; i++){
+        for (let j=0; j<y; j++){
+            console.log(grid[i][j])
+        }
     }
 }
 
-// adsf
+
 function findPath(){
     //find the shortest path to a destination
     let grid = [
