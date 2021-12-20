@@ -13,33 +13,35 @@ function onDeviceReady() {
     document.getElementById('deviceready').classList.add('ready');
 }
 
-var tile = {
-    terrain: {
-        grassland = true,
-        hills = false,
-        mountain = false,
-        water = false,
-        road = false,
-        town = false,
-        swampy = false,
-        tundra = false,
-        ruins = false,
-        landmark = 'none', // none, spire, crater, gash
-        trees = 'sparse', // sparse, moderate, forest
-        rocks = 'sparse', // sparse, moderate, rocky
-        wildlife = 'sparse', // sparse, moderate, flourishing
-        flowers = 'sparse' // sparse, moderate, fields
-    },
-    // coordinates: [x,y],
-    // function setCoord(x,y){
-    //     this.coordinates = [x,y];
-    // },
-    //neighboring tiles
-    N: [x,y],
-    E: [x,y],
-    S: [x,y],
-    W: [x,y],
-};
+class Tile {
+    constructor(x,y){
+        
+        this.grassland = true,
+        this.hills = false,
+        this.mountain = false,
+        this.water = false,
+        this.road = false,
+        this.town = false,
+        this.swampy = false,
+        this.tundra = false,
+        this.ruins = false,
+        this.landmark = 'none', // none, spire, crater, gash
+        this.trees = 'sparse', // sparse, moderate, forest
+        this.rocks = 'sparse', // sparse, moderate, rocky
+        this.wildlife = 'sparse', // sparse, moderate, flourishing
+        this.flowers = 'sparse' // sparse, moderate, fields
+        
+        this.coords = [x,y];
+        this.N = [x, (y-1)];
+        this.E = [(x+1), y];
+        this.S = [x, (y+1)];
+        this.W = [(x-1), y];
+    }
+    dispCoords(){
+        return this.coords;
+    }
+    
+}
 
 function createArray(length) {
     let arr = new Array(length || 0),
@@ -53,11 +55,17 @@ function createArray(length) {
     return arr;
 }
 
-function generateWorld(x, y,){
+function generateWorld(x,y){
+    console.log("testing");
     let grid = createArray(x, y);
     for (let i=0; i<x; i++){
         for (let j=0; j<y; j++){
-            console.log(grid[i][j])
+            local = new Tile(i,j);
+            
+            console.log(i + ' ' + j);
+            console.log("---");
+            console.log(local.coords);
+            console.log('/n');
         }
     }
 }
@@ -117,4 +125,4 @@ function findPath(){
     return false;
     }
 
-findPath()
+generateWorld(10, 10);
