@@ -27,6 +27,7 @@
     ]
   },
   "dependencies": {
-    "android-sdk": "^1.0.0"
+    "android-sdk": "^1.0.0",
+    "cordova": "^11.0.0"
   }
 }
