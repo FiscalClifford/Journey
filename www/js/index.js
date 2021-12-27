@@ -48,11 +48,11 @@ function getRand(min, max) {
 
 ///////////////////////////////////////////////////////////////////// GLOBALS ////////////////////////////////////////////////////////
 
-var sizeX = 10;
-var sizeY = 10;
-var townTotal = 4;
-var landmarkTotal = 6;
-var passes = 5;
+var sizeX = 30;
+var sizeY = 30;
+var townTotal = 6;
+var landmarkTotal = 8;
+var passes = 2;
 var grid = createGrid(sizeX);
 var towns = [];
 var landmarks = [];
@@ -89,11 +89,8 @@ class Tile {
         this.pathVisited = false,
         this.parent = undefined,
         //
-        this.coords = [x,y],
-        this.N = [x, (y+1)],
-        this.E = [(x+1), y],
-        this.S = [x, (y-1)],
-        this.W = [(x-1), y];
+        this.coords = [x,y]
+
     }
     setRocks(max) {
         let roll = getRand(1,max);
@@ -146,13 +143,13 @@ class Tile {
 
 //////////////////////////////////////////////////////////////////////// STARTUP ////////////////////////////////////////////////////////////
 
-function generateWorld(x,y, passes, towntotal){
+function generateWorld(passes, towntotal){
     //generates a new world. Will eventually integrate sliders for different vars.
     console.log("Generating World...");
     let roll = 0;
     //init 
-    for (let i=0; i<x; i++){
-        for (let j=0; j<y; j++){
+    for (let i=0; i<sizeX; i++){
+        for (let j=0; j<sizeY; j++){
             local = new Tile(i,j);
             grid[i][j] = local;
             grid[i][j].grassland = true;
@@ -160,7 +157,10 @@ function generateWorld(x,y, passes, towntotal){
             grid[i][j].setTrees(4);
             grid[i][j].setWildlife(4);
             grid[i][j].setFlowers(2);
-            
+        }
+    }
+    for (let i=1; i<sizeX-1; i++){
+        for (let j=1; j<sizeY-1; j++){ 
             //seed mountains
             roll = getRand(1,100);
             if (roll <= 2){
@@ -192,7 +192,7 @@ function generateWorld(x,y, passes, towntotal){
             }
             //seed tundra
             roll = getRand(1,100);
-            if (roll <= 5 && grid[i][j].mountain == false && grid[i][j].water == false && grid[i][j].N.desert == false && grid[i][j].E.desert == false && grid[i][j].S.desert == false && grid[i][j].W.desert == false){
+            if (roll <= 5 && grid[i][j].mountain != true && grid[i][j].water != true && grid[i][j-1].desert != true && grid[i][j+1].desert != true && grid[i+1][j].desert != true && grid[i-1][j].desert != true){
                 grid[i][j].tundra = true;
                 grid[i][j].grassland = false;
                 grid[i][j].desert = false;
@@ -214,7 +214,8 @@ function generateWorld(x,y, passes, towntotal){
             }
             //seed desert
             roll = getRand(1,100);
-            if (roll <= 5 && grid[i][j].mountain == false && grid[i][j].water == false && grid[i][j].tundra == false && grid[i][j].swampy == false && grid[i][j].N.tundra == false && grid[i][j].E.tundra == false && grid[i][j].S.tundra == false && grid[i][j].W.tundra == false){
+            if (roll <= 5 && grid[i][j].mountain == false && grid[i][j].water == false && grid[i][j].tundra == false && grid[i][j].swampy == false && grid[i][j+1].tundra != true && grid[i][j-1].tundra != true && grid[i+1][j].tundra != true && grid[i-1][j].tundra != true){
+                grid[i][j].desert = true;
                 grid[i][j].swampy = false;
                 grid[i][j].grassland = false;
                 grid[i][j].tundra = false;
@@ -232,41 +233,43 @@ function generateWorld(x,y, passes, towntotal){
         }
     }
     //surround with water
-    for (let p = 0; p < x; p++){
-        grid[p][0].water == true;
+    for (let p = 0; p < sizeX; p++){
+        grid[p][0].water = true;
         grid[p][0].grassland = false;
         grid[p][0].rocks = 'none';
         grid[p][0].trees = 'none';
         grid[p][0].wildlife = 'none';
         grid[p][0].flowers = 'none';
-        grid[p][y-1].water == true;
-        grid[p][y-1].grassland = false;
-        grid[p][y-1].rocks = 'none';
-        grid[p][y-1].trees = 'none';
-        grid[p][y-1].wildlife = 'none';
-        grid[p][y-1].flowers = 'none';
+        grid[p][sizeY-1].water = true;
+        grid[p][sizeY-1].grassland = false;
+        grid[p][sizeY-1].rocks = 'none';
+        grid[p][sizeY-1].trees = 'none';
+        grid[p][sizeY-1].wildlife = 'none';
+        grid[p][sizeY-1].flowers = 'none';
     }
-    for (let o = 0; o < y; o++){
-        grid[0][o].water == true;
+    for (let o = 0; o < sizeY; o++){
+        grid[0][o].water = true;
         grid[0][o].grassland = false;
         grid[0][o].rocks = 'none';
         grid[0][o].trees = 'none';
         grid[0][o].wildlife = 'none';
         grid[0][o].flowers = 'none';
-        grid[x-1][o].water == true;
-        grid[x-1][o].grassland = false;
-        grid[x-1][o].rocks = 'none';
-        grid[x-1][o].trees = 'none';
-        grid[x-1][o].wildlife = 'none';
-        grid[x-1][o].flowers = 'none';
+        grid[sizeX-1][o].water = true;
+        grid[sizeX-1][o].grassland = false;
+        grid[sizeX-1][o].rocks = 'none';
+        grid[sizeX-1][o].trees = 'none';
+        grid[sizeX-1][o].wildlife = 'none';
+        grid[sizeX-1][o].flowers = 'none';
     }
     // Normalize tile attributes using multiple passes
     for (let z=0; z<passes;z++){
-        for (let i=0; i<x; i++){
-            for (let j=0; j<y; j++){
-                if (grid[i][j].N.mountain == true || grid[i][j].E.mountain == true || grid[i][j].S.mountain == true || grid[i][j].W.mountain == true){
+        console.log("pass "+z);
+        for (let i=1; i<sizeX-1; i++){
+            for (let j=1; j<sizeY-1; j++){
+                if (grid[i][j-1].mountain == true || grid[i+1][j].mountain == true || grid[i][j+1].mountain == true || grid[i-1][j].mountain == true){
                     roll = getRand(1,100);
                     if (roll <= 20  && grid[i][j].water == false){
+                        //console.log("pass worked mountain");
                         grid[i][j].mountain = true;
                         grid[i][j].hills = false;
                         grid[i][j].rocks = 'rocky';
@@ -275,9 +278,10 @@ function generateWorld(x,y, passes, towntotal){
                         grid[i][j].flowers = 'none';
                     }
                 }
-                if (grid[i][j].N.water == true || grid[i][j].E.water == true || grid[i][j].S.water == true || grid[i][j].W.water == true){
+                if (grid[i][j+1].water == true || grid[i][j-1].water == true || grid[i+1][j].water == true || grid[i-1][j].water == true){
                     roll = getRand(1,100);
-                    if (roll <= 50  && grid[i][j].mountain == false){
+                    if (roll <= 20  && grid[i][j].mountain == false){
+                        //console.log("pass worked water");
                         grid[i][j].water = true;
                         grid[i][j].grassland = false;
                         grid[i][j].hills = false;
@@ -290,16 +294,17 @@ function generateWorld(x,y, passes, towntotal){
                         grid[i][j].flowers = 'none';
                     }
                 }
-                if (grid[i][j].N.hills == true || grid[i][j].E.hills == true || grid[i][j].S.hills == true || grid[i][j].W.hills == true){
+                if (grid[i][j+1].hills == true || grid[i][j-1].hills == true || grid[i+1][j].hills == true || grid[i-1][j].hills == true){
                     roll = getRand(1,100);
-                    if (roll <= 50 && grid[i][j].water == false){
+                    if (roll <= 60 && grid[i][j].water == false){
                         grid[i][j].hills = true;
                         
                     }
                 }
-                if (grid[i][j].N.tundra == true || grid[i][j].E.tundra == true || grid[i][j].S.tundra == true || grid[i][j].W.tundra == true){
+                if (grid[i][j+1].tundra == true || grid[i][j-1].tundra == true || grid[i+1][j].tundra == true || grid[i-1][j].tundra == true){
                     roll = getRand(1,100);
-                    if (roll <= 50  && grid[i][j].water == false && grid[i][j].N.desert == false && grid[i][j].E.desert == false && grid[i][j].S.desert == false && grid[i][j].W.desert == false){
+                    if (roll <= 40  && grid[i][j].water == false && grid[i][j+1].desert == false && grid[i][j-1].desert == false && grid[i+1][j].desert == false && grid[i-1][j].desert == false){
+                        //console.log("pass worked tundra");
                         grid[i][j].grassland = false;
                         grid[i][j].swampy = false;
                         grid[i][j].tundra = true;
@@ -310,9 +315,10 @@ function generateWorld(x,y, passes, towntotal){
                         grid[i][j].setFlowers(0);
                     }
                 }
-                if (grid[i][j].N.desert == true || grid[i][j].E.desert == true || grid[i][j].S.desert == true || grid[i][j].W.desert == true){
+                if (grid[i][j+1].desert == true || grid[i][j-1].desert == true || grid[i+1][j].desert == true || grid[i-1][j].desert == true){
                     roll = getRand(1,100);
-                    if (roll <= 50  && grid[i][j].water == false && grid[i][j].N.tundra == false && grid[i][j].E.tundra == false && grid[i][j].S.tundra == false && grid[i][j].W.tundra == false){
+                    if (roll <= 40  && grid[i][j].water == false && grid[i][j+1].tundra == false && grid[i][j-1].tundra == false && grid[i+1][j].tundra == false && grid[i-1][j].tundra == false){
+                        //console.log("pass worked desert");
                         grid[i][j].grassland = false;
                         grid[i][j].swampy = false;
                         grid[i][j].tundra = false;
@@ -323,9 +329,10 @@ function generateWorld(x,y, passes, towntotal){
                         grid[i][j].setFlowers(0);
                     }
                 }
-                if (grid[i][j].N.swampy == true || grid[i][j].E.swampy == true || grid[i][j].S.swampy == true || grid[i][j].W.swampy == true){
+                if (grid[i][j+1].swampy == true || grid[i][j-1].swampy == true || grid[i+1][j].swampy == true || grid[i-1][j].swampy == true){
                     roll = getRand(1,100);
                     if (roll <= 30  && grid[i][j].water == false && grid[i][j].mountain == false ){
+                        //console.log("pass worked swamp");
                         grid[i][j].swampy = true;
                         grid[i][j].grassland = false;
                         grid[i][j].hills = false;
@@ -382,7 +389,7 @@ function generateWorld(x,y, passes, towntotal){
         }
         counter ++;
         //if impossible to make more towns
-        if (counter > (x*y*10)){
+        if (counter > (sizeX*sizeY)){
             z = (towntotal + 1);
         }
     }
@@ -426,35 +433,41 @@ function generateWorld(x,y, passes, towntotal){
         }
         counter ++;
         //if impossible to make more towns
-        if (counter > (x*y*10)){
+        if (counter > (sizeX*sizeY)){
             q = (landmarkTotal + 1);
         }
     }
 
     //build roads
     console.log("building roads...");
-    var startPoint = new Loc();
-    var endPoint = new Loc();
     var closeby = [];
-    let closeness = 2;
-    dist = (((sizeX + sizeY)/2)/closeness);
+    var townsDone = [];
+
+    dist = (((sizeX + sizeY)/2));
+    dist = (Math.round(dist/3))
     if (dist <2){dist = 2;}
-
-    for (townStart of towns){;
-        startPoint.x = townStart.x;
-        startPoint.y = townStart.y;
-
+    
+    for (townStart of towns){
         //find nearby towns
-        for (i=(startPoint.x-dist); i<=(startPoint.x+dist);i++){
-            for (j=(startPoint.y-dist); j<=(startPoint.y+dist);j++){
+        for (i=(townStart.x-dist); i<=(townStart.x+dist);i++){
+            for (j=(townStart.y-dist); j<=(townStart.y+dist);j++){
                 //check if looking outside bounds
                 if ((i<0) || (i>(sizeX-1)) || (j<0) || (j>(sizeY-1))){
                     continue;
                 }
                 if (grid[i][j].town == true){
-                    if (startPoint.x != i && startPoint.y != j){
-                        spot = {x:i,y:j};
-                        closeby.push(spot);
+                    if (townStart.x != i && townStart.y != j){
+                        //no repeats
+                        let repeated = false;
+                        for (check of townsDone){
+                            if (check.x == i && check.y == j){
+                                repeated = true;
+                            }
+                        }
+                        if (repeated == false){
+                            spot = {x:i,y:j};
+                            closeby.push(spot);
+                        }
                     }
                 }
             }
@@ -462,21 +475,18 @@ function generateWorld(x,y, passes, towntotal){
         if (closeby.length  < 1){break;}
 
         for (townEnd of closeby){
-            endPoint.x = townEnd.x;
-            endPoint.y = townEnd.y;
             //console.log("comp "+startPoint.x+","+startPoint.y+ " and "+endPoint.x+","+endPoint.y);
-
-            if (startPoint.x != endPoint.x && startPoint.y != endPoint.y){
-                //find the path between these points
-                console.log("finding path between " + startPoint.x + "," + startPoint.y + " and " + endPoint.x + "," + endPoint.y);
-                let roadRoute = findPath(startPoint, endPoint);
-                console.log("Path route:");
-                for (item of roadRoute){
-                    console.log(item.x + "," + item.y);
-                    grid[item.x][item.y].road = true;
-                }
-            }
+                
+            //find the path between these points
+            console.log("finding path between " + townStart.x + "," + townStart.y + " and " + townEnd.x + "," + townEnd.y);
+            let roadRoute = findPath(townStart, townEnd);
+            console.log("Path route:");
+            for (item of roadRoute){
+                console.log(item.x + "," + item.y);
+                grid[item.x][item.y].road = true;
+            } 
         }
+        townsDone.push(townStart);
         closeby = [];
     }
 }
@@ -535,7 +545,6 @@ function findPath(startPoint, endPoint){
 
     var queue = [];
     queue.push(startPoint);
-    var counter = 0;
     var matchFlag = false;
     var final = []
 
@@ -569,11 +578,30 @@ function findPath(startPoint, endPoint){
               else matchFlag = false;
           }
         }
-        counter ++;
-        if (counter > 200){break;}
     }
     return false;
 }
+
+function dispGrid(){
+    let arr = '';
+    for (i=0;i<sizeX;i++){
+        arr = '';
+        for (j=0;j<sizeY;j++){
+            if (grid[i][j].landmark == 'Spire'){arr = arr+' @ ';}
+            else if (grid[i][j].town == true){arr = arr+' X ';}
+            else if (grid[i][j].road == true){arr = arr+' # ';}
+            else if (grid[i][j].water == true){arr = arr+' W ';}
+            else if (grid[i][j].mountain == true){arr = arr+' M ';}
+            else if (grid[i][j].desert == true){arr = arr+' - ';}
+            else if (grid[i][j].tundra == true){arr = arr+' ~ ';}
+            else if (grid[i][j].grassland == true){arr = arr+' . ';}
+            else if (grid[i][j].swampy == true){arr = arr+' & ';}
+            else {arr = arr+' ? ';}
+        }
+        console.log(arr);
+    }
+}
     
 
-generateWorld(sizeX, sizeY, passes, townTotal);
+generateWorld(passes, townTotal);
+dispGrid();
