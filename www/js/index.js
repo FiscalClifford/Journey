@@ -33,9 +33,11 @@ function getRand(min, max) {
 var sizeX = 10;
 var sizeY = 10;
 var townTotal = 4;
+var landmarkTotal = 6;
 var passes = 5;
 var grid = createGrid(sizeX);
 var towns = [];
+var landmarks = [];
 
 //////////////////////////////////////////////////////////////////// CLASSES //////////////////////////////////////////////////////////
 
@@ -322,26 +324,27 @@ function generateWorld(x,y, passes, towntotal){
     }
 
     //init towns
+
+    var dist = (((sizeX + sizeY)/2)/10);
+    if (dist <2){dist = 2;}
+ 
     console.log("building towns...");
     let z = 0; 
     let counter = 0;
     //console.log ("z: "+z+" towns: "+towntotal);
-    while(z<towntotal){
-        var roll1 = getRand(1,(x-2));
-        var roll2 = getRand(1,(y-2));
+    while(z<townTotal){
+        var roll1 = getRand(1,(sizeX-2));
+        var roll2 = getRand(1,(sizeY-2));
         //console.log("checking: "+roll1+","+roll2);
         if (grid[roll1][roll2].water == false && grid[roll1][roll2].mountain == false){
-            //determine if too close to another town
-            var dist = (((x + y)/2)/10);
-            if (dist <2){dist = 2;}
             let tooclose = false; //flag
             for (i=(roll1-dist); i<=(roll1+dist);i++){
                 for (j=(roll2-dist); j<=(roll2+dist);j++){
                     //console.log("dist check: "+ i+","+j);
                     //check if looking outside bounds
-                    if ((i<0) || (i>(x-1)) || (j<0) || (j>(y-1))){
+                    if ((i<0) || (i>(sizeX-1)) || (j<0) || (j>(sizeY-1))){
                         //console.log("out of bounds");
-                        break;
+                        continue;
                     }
                     if (grid[i][j].town == true){
                         tooclose = true;
@@ -356,7 +359,6 @@ function generateWorld(x,y, passes, towntotal){
                 place.x = roll1;
                 place.y = roll2;
                 towns.push(place);
-                console.log(place);
                 z++;
             }
         }
@@ -367,18 +369,81 @@ function generateWorld(x,y, passes, towntotal){
         }
     }
 
+    //init landmarks
+    console.log("creating landmarks...");
+    let q = 0; 
+    counter = 0;
+    dist = (((sizeX + sizeY)/2)/10);
+    if (dist <2){dist = 2;}
+
+    while(q<landmarkTotal){
+        var roll1 = getRand(1,(sizeX-2));
+        var roll2 = getRand(1,(sizeY-2));
+        //console.log("checking: "+roll1+","+roll2);
+        if (grid[roll1][roll2].water == false && grid[roll1][roll2].mountain == false&& grid[roll1][roll2].town == false){
+            let tooclose = false; //flag
+            for (i=(roll1-dist); i<=(roll1+dist);i++){
+                for (j=(roll2-dist); j<=(roll2+dist);j++){
+                    //console.log("dist check: "+ i+","+j);
+                    //check if looking outside bounds
+                    if ((i<0) || (i>(sizeX-1)) || (j<0) || (j>(sizeY-1))){
+                        //console.log("out of bounds");
+                        continue;
+                    }
+                    if (grid[i][j].landmark != 'none'){
+                        tooclose = true;
+                        //console.log("too close!");
+                    }
+                }
+            }
+            if (tooclose == false){
+                console.log("landmark created at: "+ roll1 + " , " + roll2);
+                grid[roll1][roll2].landmark = 'Spire';
+                let place = new Loc();
+                place.x = roll1;
+                place.y = roll2;
+                landmarks.push(place);
+                q++;
+            }
+        }
+        counter ++;
+        //if impossible to make more towns
+        if (counter > (x*y*10)){
+            q = (landmarkTotal + 1);
+        }
+    }
+
     //build roads
     console.log("building roads...");
     var startPoint = new Loc();
     var endPoint = new Loc();
-    for (i=0;i<towns.length;i++){
-        console.log(towns[i]);
-    }
+    var closeby = [];
+    let closeness = 2;
+    dist = (((sizeX + sizeY)/2)/closeness);
+    if (dist <2){dist = 2;}
 
-    for (townStart of towns){
+    for (townStart of towns){;
         startPoint.x = townStart.x;
         startPoint.y = townStart.y;
-        for (townEnd of towns){
+
+        //find nearby towns
+        for (i=(startPoint.x-dist); i<=(startPoint.x+dist);i++){
+            for (j=(startPoint.y-dist); j<=(startPoint.y+dist);j++){
+                //check if looking outside bounds
+                if ((i<0) || (i>(sizeX-1)) || (j<0) || (j>(sizeY-1))){
+                    continue;
+                }
+                if (grid[i][j].town == true){
+                    if (startPoint.x != i && startPoint.y != j){
+                        spot = {x:i,y:j};
+                        closeby.push(spot);
+                    }
+                }
+            }
+        }
+        if (closeby.length  < 1){break;}
+
+        for (townEnd of closeby){
             endPoint.x = townEnd.x;
             endPoint.y = townEnd.y;
             //console.log("comp "+startPoint.x+","+startPoint.y+ " and "+endPoint.x+","+endPoint.y);
@@ -394,6 +459,7 @@ function generateWorld(x,y, passes, towntotal){
                 }
             }
         }
+        closeby = [];
     }
 }
 
@@ -430,10 +496,6 @@ function findPath(startPoint, endPoint){
         if (safeNeighbor(x + 1, y)) {
             allNeighbors.push({x: x+1, y: y});
         }
-        // for (i=0; i <allNeighbors.length; i++){
-        //     console.log("Neighbors:"+allNeighbors[i].x+","+allNeighbors[i].y+"   visited?: "+grid[allNeighbors[i].x][allNeighbors[i].y].pathVisited);
-        // }
-        console.log("~~~~");
         return allNeighbors;
     };
 
@@ -449,10 +511,7 @@ function findPath(startPoint, endPoint){
             paths.push(parent);
             path = {x:parent.x,y:parent.y};
             }
-        //console.log("-----------------------");
-        // for (item of paths){
-        //     console.log(item.x + "," + item.y);
-        // }
+
         return paths.reverse();
     }
 
@@ -465,11 +524,6 @@ function findPath(startPoint, endPoint){
     //main loop
     while (queue.length) {
         var currentLocation = queue.shift();
-        //console.log("Currently at: "+currentLocation.x+","+currentLocation.y+" --> "+endPoint.x+","+endPoint.y);
-        //console.log("Queue:")
-        for (place of queue){
-            console.log(place.x+","+place.y);
-        }
         if (currentLocation.x == endPoint.x && currentLocation.y == endPoint.y){
             final = printPath(currentLocation);
             for(i=0;i<sizeX;i++){
