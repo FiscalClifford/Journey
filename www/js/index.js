@@ -362,7 +362,7 @@ function generateWorld(x,y, passes, towntotal){
         }
         counter ++;
         //if impossible to make more towns
-        if (counter > (x*y*100)){
+        if (counter > (x*y*10)){
             z = (towntotal + 1);
         }
     }
@@ -411,7 +411,7 @@ function findPath(startPoint, endPoint){
     //returns list of viable neighbors to visit
     exploreLoc = function (loc) {
         let allNeighbors = [];
-        console.log("finding neighbors for: "+loc.x+","+loc.y);
+        //console.log("finding neighbors for: "+loc.x+","+loc.y);
         let x = loc.x;
         let y = loc.y;
         //left
@@ -430,9 +430,9 @@ function findPath(startPoint, endPoint){
         if (safeNeighbor(x + 1, y)) {
             allNeighbors.push({x: x+1, y: y});
         }
-        for (i=0; i <allNeighbors.length; i++){
-            console.log("Neighbors:"+allNeighbors[i].x+","+allNeighbors[i].y+"   visited?: "+grid[allNeighbors[i].x][allNeighbors[i].y].pathVisited);
-        }
+        // for (i=0; i <allNeighbors.length; i++){
+        //     console.log("Neighbors:"+allNeighbors[i].x+","+allNeighbors[i].y+"   visited?: "+grid[allNeighbors[i].x][allNeighbors[i].y].pathVisited);
+        // }
         console.log("~~~~");
         return allNeighbors;
     };
@@ -449,10 +449,10 @@ function findPath(startPoint, endPoint){
             paths.push(parent);
             path = {x:parent.x,y:parent.y};
             }
-        console.log("-----------------------");
-        for (item of paths){
-            console.log(item.x + "," + item.y);
-        }
+        //console.log("-----------------------");
+        // for (item of paths){
+        //     console.log(item.x + "," + item.y);
+        // }
         return paths.reverse();
     }
 
@@ -465,8 +465,8 @@ function findPath(startPoint, endPoint){
     //main loop
     while (queue.length) {
         var currentLocation = queue.shift();
-        console.log("Currently at: "+currentLocation.x+","+currentLocation.y+" --> "+endPoint.x+","+endPoint.y);
-        console.log("Queue:")
+        //console.log("Currently at: "+currentLocation.x+","+currentLocation.y+" --> "+endPoint.x+","+endPoint.y);
+        //console.log("Queue:")
         for (place of queue){
             console.log(place.x+","+place.y);
         }
