@@ -30,8 +30,8 @@ function getRand(min, max) {
 
 ///////////////////////////////////////////////////////////////////// GLOBALS ////////////////////////////////////////////////////////
 
-var sizeX = 20;
-var sizeY = 20;
+var sizeX = 10;
+var sizeY = 10;
 var townTotal = 4;
 var passes = 5;
 var grid = createGrid(sizeX);
@@ -409,134 +409,98 @@ function findPath(startPoint, endPoint){
     };
 
     //returns list of viable neighbors to visit
-    exploreLoc = function (x,y) {
+    exploreLoc = function (loc) {
         let allNeighbors = [];
-        console.log("finding neighbors for: "+x+","+y);
+        console.log("finding neighbors for: "+loc.x+","+loc.y);
+        let x = loc.x;
+        let y = loc.y;
         //left
         if (safeNeighbor(x, y - 1)){
-            let place = new Loc();
-            place.x = x;
-            place.y = y-1;
-            if (grid[place.x][place.y].pathVisited != true){
-                allNeighbors.push(place);
-                grid[place.x][place.y].pathVisited = true
-            }
+            allNeighbors.push({x: x, y: y-1});
         } 
         //right
         if (safeNeighbor(x, y + 1)) {
-            let place = new Loc();
-            place.x = x;
-            place.y = y+1;
-            if (grid[place.x][place.y].pathVisited != true){
-                allNeighbors.push(place);
-                grid[place.x][place.y].pathVisited = true
-            }
+            allNeighbors.push({x: x, y: y+1});
         }
         //top
         if (safeNeighbor(x - 1, y)) {
-            let place = new Loc();
-            place.x = x-1;
-            place.y = y;
-            if (grid[place.x][place.y].pathVisited != true){
-                allNeighbors.push(place);
-                grid[place.x][place.y].pathVisited = true
-            }
+            allNeighbors.push({x: x-1, y: y});
         }
         //bottom
         if (safeNeighbor(x + 1, y)) {
-            let place = new Loc();
-            place.x = x+1;
-            place.y = y;
-            if (grid[place.x][place.y].pathVisited != true){
-                allNeighbors.push(place);
-                grid[place.x][place.y].pathVisited = true
-            }
+            allNeighbors.push({x: x+1, y: y});
         }
         for (i=0; i <allNeighbors.length; i++){
-            console.log("unvisited Neighbors:"+allNeighbors[i].x+","+allNeighbors[i].y);
+            console.log("Neighbors:"+allNeighbors[i].x+","+allNeighbors[i].y+"   visited?: "+grid[allNeighbors[i].x][allNeighbors[i].y].pathVisited);
         }
-        console.log("---");
+        console.log("~~~~");
         return allNeighbors;
     };
 
-    getFinal = function (final){
+    printPath = function (path){
     //go backwards through parents and assemeble final answer
-        let paths = [];
-        paths.push(final);
-        let doneFlag = false;
-        let place = new Loc();
-        place = final;
-        while(doneFlag == false){
-            console.log("final section");
-            let parent = grid[place.x][place.y].parent;
-            if(parent == undefined) {
-                doneFlag = true;
+        let paths = [path];
+        while(true){
+            let x = path.x;
+            let y = path.y;
+            let parent = grid[x][y].parent;
+            if(parent == undefined)
+              break;
+            paths.push(parent);
+            path = {x:parent.x,y:parent.y};
             }
-            else{
-                place.x = parent.x; 
-                place.y = parent.y;
-                paths.push(place);
-            }
+        console.log("-----------------------");
+        for (item of paths){
+            console.log(item.x + "," + item.y);
         }
-        console.log(paths);
-        return paths;
+        return paths.reverse();
     }
 
-    var result = [];
     var queue = [];
     queue.push(startPoint);
-    grid[startPoint.x][startPoint.y].pathVisited = true;
     var counter = 0;
+    var matchFlag = false;
+    var final = []
 
     //main loop
-    do {
-        for (asd of queue){
-            console.log("queue: "+asd.x + ","+asd.y);
+    while (queue.length) {
+        var currentLocation = queue.shift();
+        console.log("Currently at: "+currentLocation.x+","+currentLocation.y+" --> "+endPoint.x+","+endPoint.y);
+        console.log("Queue:")
+        for (place of queue){
+            console.log(place.x+","+place.y);
         }
-        
-        var currentLoc = queue.shift();
-        
-        //if done
-        if (currentLoc.x == endPoint.x && currentLoc.y == endPoint.y) {
-            result = getFinal(currentLoc);
-            //cleanup 
-            for(let i=0; i<sizeX;i++){
-                for(let j=0; j<sizeY;j++){
+        if (currentLocation.x == endPoint.x && currentLocation.y == endPoint.y){
+            final = printPath(currentLocation);
+            for(i=0;i<sizeX;i++){
+                for(j=0;j<sizeY;j++){
                     grid[i][j].parent = undefined;
                     grid[i][j].pathVisited = false;
                 }
             }
-            return result;
-        }
-        //if not done check neighbors and push them into queue
-        grid[currentLoc.x][currentLoc.y].pathVisited = true;
-
-        let neighbors = exploreLoc(currentLoc.x, currentLoc.y);
+            return final;
+        }    
+        grid[currentLocation.x][currentLocation.y].pathVisited = true;
+        var neighbors = exploreLoc(currentLocation);
         for(neighbor of neighbors){
-            
-            //console.log("neighbor of neighbor for: "+neighbor.x+","+neighbor.y);
-            
-            let existflag = false;
-            for (asd of queue){
-                if (neighbor.x == asd.x && neighbor.y == asd.y){
-                    existflag = true;
-                    console.log("found existing value in queue");
-                }
-            }
-            if (existflag == false){
+          if(grid[neighbor.x][neighbor.y].pathVisited != true){
+              for (i=0; i < queue.length;i++){
+                  if (queue[i].x == neighbor.x && queue[i].y == neighbor.y){
+                    matchFlag = true;
+                  }
+              }
+              if (matchFlag == false){
                 queue.push(neighbor);
-                grid[neighbor.x][neighbor.y].parent = currentLoc;
-            }
-                
-                
-            }
-        counter ++;
-        if (counter > 1000){
-            console.log("counter break");
-            break;
+                grid[neighbor.x][neighbor.y].parent = currentLocation;
+              }
+              else matchFlag = false;
+          }
         }
-        } while (queue.length > 0);
+        counter ++;
+        if (counter > 200){break;}
     }
+    return false;
+}
     
 
 generateWorld(sizeX, sizeY, passes, townTotal);
