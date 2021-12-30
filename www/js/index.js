@@ -20,7 +20,7 @@ function getRand(min, max) {
     return Math.floor(Math.random() * (max - min + 1) ) + min;
   }
 
-  function createGrid(x){
+function createGrid(x){
     let matrix = [];
     for (i=0; i<x; i++){
         matrix[i] = []; 
@@ -190,35 +190,6 @@ var keywords = [];
 var characters = [];
 var day = 1000;
 
-//file = "../textfiles/male.txt";
-
-///////////////////////////////////////////////////////////////////// BANKS ///////////////////////////////////////////////////////
-
-var townNames = ['Sherwwod', 'Kingsbridge', 'Aerilon', 'Aquarin', 'Aramoor', 'Azmar', 'Begger’s Hole', 'Black Hollow', 'Blue Field', 'Briar Glen', 
-'Brickelwhyte', 'Broken Shield', 'Bullmar', 'Carran', 'Coalfell', 'Cullfield', 'Darkwell', 'Doonatel', 'Dry Gulch', 'Easthaven', 'Ecrin', 'Erast', 'Far Water',
-'Firebend', 'Fool’s March', 'Frostford', 'Goldcrest', 'Goldenleaf', 'Greenflower', 'Garen’s Well', 'Haran', 'Hillfar', 'Hogsfeet', 'Hollyhead', 'Hull Hwen', 'Icemeet',
-'Ironforge', 'Irragin', 'Jarren’s Outpost', 'Jongvale', 'Kara’s Vale', 'Knife’s Edge', 'Lakeshore', 'Leeside', 'Lullin', 'Marren’s Eve', 'Millstone', 'Moonbright',
-'Mountmend', 'Nearon', 'New Cresthill', 'Northpass', 'Nuxvar', 'Oakheart', 'Oar’s Rest', 'Old Ashton', 'Orrinshire', 'Ozryn', 'Pavv', 'Pella’s Wish', 'Pinnella Pass',
-'Queenstown', 'Ramshorn', 'Red Hawk', 'Rivermouth', 'Saker Keep', 'Seameet', 'Oakenkeep', 'The Warren', 'Snowmelt', 'Squall’s End', 'Swordbreak',
-'Tarrin', 'Three Streams', 'Trudid', 'Ubbin Falls', 'Ula’ree', 'Veritas', 'Violl’s Garden', 'Wavemeet', 'Whiteridge', 'Willowdale', 'Windrip', 'Wintervale', 'Wellspring',
-'Westwend', 'Wolfden'];
-
-var maleNames = ['Adam', 'Axel', 'Bailey', 'Clint', 'Clayton', 'Geoff', 'Jaime', 'Kaiser', 'Josia', 'Rick', 'Mark', 'Maximus', 'Mayndard'];
-var femaleNames = ['Mary', 'Shirley', 'Sarah', 'Anna', 'Carol', 'Ruth', 'Catherine', 'Joyce', 'Heather', 'June', 'Megan', 'Holly'];
-var eyeColors = ['light blue', 'blue', 'dark blue', 'gray', 'stormy blue', 'blue-gray', 'green', 'hazel', 'amber', 'light brown', 'brown', 'dark brown', 'chestnut',
-'brown','brown','brown','brown','brown','light-brown','light-brown'];
-var hairColors = ['brown', 'black', 'grey', 'light brown', 'dark brown', 'blonde', 'brown', 'black', 'jet black', 'black', 'black', 'black', 'dark brown', 'dark brown'];
-var armorUpper = ['studded leather', 'iron curiass', 'full iron plate', 'iron chainmail', 'bronze curiass', 'full bronze plate', 'bronze chainmail', 'iron armor with fur lining the edges',
-'iron armor with a cape draped behind it', 'iron armor concealed behind a cloak', 'dirty chainmail', 'the shredded remnants of chainmail', 'dirty gambeson', 'worn leather gear'];
-var headgear = ['hood', 'half helm', 'barbute helmet', 'eye concealing full helm with horns sticking out the top', 'Lamellar helmet', 'turban', 'wool cap', 'floppy hat'];
-var upperClothes = ['shirt', 'vest', 'tunic', 'doublet', 'jerkin', 'wool coat', 'unbuttoned shirt', 'dirty shirt', 'ripped tunic', 'dirty tunic', 'worn coat', 'worn jerkin', 'ripped cloak'];
-var lowerClothes = ['breeches', 'hose', 'pants', 'shorts', 'dirty pants', 'worn pants', 'worn shorts', 'frayed pants', 'ripped pants', 'faded pants'];
-var colors = ['pink', 'crimson', 'red', 'maroon', 'brown', 'rose', 'salmon', 'orange-red', 'orange','gold', 'ivory', 'yellow', 'olive', 'lime-green', 'green', 'dark green', 'aquamarine',
-'turquoise', 'azure', 'cyan', 'teal', 'lavender', 'blue', 'navy', 'violet', 'indigo', 'plum', 'magenta', 'purple','white', 'silver'];
-var mutedColors = ['tan', 'brown', 'grey', 'dark-grey', 'light-grey', 'light-brown','dark-brown', 'beige'];
-var landmarkNames = ['Castle of Doom', 'Hall of Souls', "Spire of Reckoning", 'Pit of Dispair', 'Citadel of Madness', 'Tower of Steel', 'Caves of the prophet', 'Jungle of despair', 'The Abyss'];
-var emotions = ['saddened', 'disgusted', 'surprised', 'angered', 'delighted', 'disturbed', 'scared'];
-
 //////////////////////////////////////////////////////////////////// CLASSES //////////////////////////////////////////////////////////
 
 class Loc {
@@ -369,7 +340,7 @@ function chooseGender(){
     else {return 'female';}
 }
 function chooseAge(){
-    return getRand(15, 60);
+    return getRand(18, 80);
 }
 function choosePersonality(){
     let type = getRand(1,4);
@@ -404,7 +375,7 @@ function chooseGoals(homeName){
 function chooseKeymemories(age){
     let mems = [];
     let timeOccurred = getRand((day - age), day);
-    mems.push(new KeyMemory(timeOccurred, undefined, undefined, undefined, undefined));
+    mems.push(new KeyMemory(timeOccurred));
     return mems;
 }
 function chooseClothing(){
@@ -914,8 +885,8 @@ function generateWorld(){
 
 
 
-    for (i=0; i<(towns.length * 2); i++){
-        let character = new Person({x:15,y:15},undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined,undefined);
+    for (i=0; i<(towns.length * 20); i++){
+        let character = new Person({x:15,y:15});
  
         characters.push(character);
         keywords.push(character.name);
