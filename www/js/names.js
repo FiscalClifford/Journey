@@ -235,6 +235,12 @@ var townNames = ['Sherwwod', 'Kingsbridge', 'Aerilon', 'Aquarin', 'Aramoor', 'Az
 'Auctershire', 'Greenflower', 'Ballatersville', 'Venzor', 'Sheepsland', 'Grasmere', 'Northon', 'Favorsham', 'Farncombe', 'Balmoral', 'Swindlecote', 'Barmwich', 'Briars patch',
 'Ravaryn', 'Ywain', 'Orioch', 'Khisland', 'Reichladden', 'Sarithin', 'Gwendollihn', 'Reikand', 'Kikoro'];
 
+var titles = ['The Nightingale', 'The Majestic', 'The Brave', 'The Swift', 'The Executioner', 'The Enforcer', 'The Prophet', 'The Lone Stalker', 'The Nimble', 'The Exalted', 'The Vengeful', 'The Grim Reaper', 
+'Mooncrusher', 'Manslayer', 'Dragonslayer', 'Void Wanderer', 'Wolfsbane',  'The Blade of Storms', 'Nightmare Reaver', 'Paragon of Steel', 'Stormfang', 'Apostle of Shadow', 
+'The Bloodseeker', 'The Punisher', 'The Sentinel of Realms',  'The Champion', 'Master of the Horizon', 'The Guardian', 'Eternal Sovereign', 'Devourer of Evil',
+'The Avenger',  'The Vanquisher', 'The Bloodstained', 'The Starkindler', 'The Adjuticator', 'The Legendary', 'The Northstrider', 'The Bladmaster', 'The Golden Reverend', 
+'The Eastern Seer', 'The Western Force', 'The Will of the South', 'The Sage of the Desert', 'The Shrouded Shaman', 'Emperor of Ash', 'Skullbreaker', 'The Blessed Captain', 'The Virtuous', 'Dreamcatcher'];
+
 var landmarkNames = ['Castle of Doom', 'Hall of Souls', "Spire of Reckoning", 'Pit of Dispair', 'Citadel of Madness', 'Tower of Steel', 'Caves of the prophet', 'Jungle of despair', 'The Abyss'];
 
 var eyeColors = ['light blue', 'blue', 'dark blue', 'gray', 'stormy blue', 'blue-gray', 'green', 'hazel', 'amber', 'light brown', 'brown', 'dark brown', 'chestnut',
@@ -243,17 +249,37 @@ var eyeColors = ['light blue', 'blue', 'dark blue', 'gray', 'stormy blue', 'blue
 var hairColors = ['brown', 'black', 'grey', 'light brown', 'dark brown', 'blonde', 'brown', 'black', 'jet black', 'black', 'black', 'black', 'dark brown', 'dark brown'];
 
 var armorUpper = ['studded leather', 'iron curiass', 'full iron plate', 'iron chainmail', 'bronze curiass', 'full bronze plate', 'bronze chainmail', 'iron armor with fur lining the edges',
-'iron armor with a cape draped behind it', 'iron armor concealed behind a cloak', 'dirty chainmail', 'the shredded remnants of chainmail', 'dirty gambeson', 'worn leather gear'];
+'iron breastplate', 'iron armor', 'dirty chainmail', 'the shredded remnants of chainmail', 'dirty gambeson', 'worn leather gear', 'steel plate with tall gorget',
+'iron armor with tall pauldrons', 'metal hauberk', 'durable steel breastplate', 'sturdy iron breastplate', 'laminar armor', 'scale armor', 'brigandine'];
 
-var headgear = ['hood', 'half helm', 'barbute helmet', 'eye concealing full helm with horns sticking out the top', 'Lamellar helmet', 'turban', 'wool cap', 'floppy hat'];
+var headgear = ['hood', 'half helm', 'barbute helmet', 'full helm with horns', 'Lamellar helmet', 'turban', 'wool cap', 'huge floppy hat', 'templar helmet', 'face wrappings', 'eyepatch', 'Bandana',
+'crusader great helm', 'knights helmet', 'centurion helmet', 'kettle helmet', 'basinet with grill visor', 'corinthian style barbuta', 'visored sallet helm', 'houndskull helmet', 'klappvisier bascinet helmet',
+'leather studded helmet', 'rugged leather cowboy hat', 'cap with feather'];
+
+var merchHats = ['hood', 'turban', 'wool cap', 'coif', 'fur hat', 'wool scarf'];
 
 var upperClothes = ['shirt', 'vest', 'tunic', 'doublet', 'jerkin', 'wool coat', 'unbuttoned shirt', 'dirty shirt', 'ripped tunic', 'dirty tunic', 'worn coat', 'worn jerkin', 'ripped cloak'];
 
+var niceUpper = ['shirt', 'vest', 'fine tunic', 'doublet', 'buttoned shirt', 'fine shirt', 'buttoned vest', 'fine vest', 'high collared jacket', 'extravagant coat', 'exquisitely made coat'];
+
+var niceLower = ['breeches', 'hose', 'pants', 'fine pants', 'well made pants', 'sturdy pants', 'padded pants', 'durable pants'];
+
 var lowerClothes = ['breeches', 'hose', 'pants', 'shorts', 'dirty pants', 'worn pants', 'worn shorts', 'frayed pants', 'ripped pants', 'faded pants'];
+
+var capes = ['cape', 'long flowing cape', 'majestic cape', 'shoulder cape', 'capelet', 'poncho cape', 'fur-lined cape', 'cape embellished with intricate designs', 'rugged cape', 'tattered cape', 'shredded cape', 'ripped cape'];
 
 var colors = ['pink', 'crimson', 'red', 'maroon', 'brown', 'rose', 'salmon', 'orange-red', 'orange','gold', 'ivory', 'yellow', 'olive', 'lime-green', 'green', 'dark green', 'aquamarine',
 'turquoise', 'azure', 'cyan', 'teal', 'lavender', 'blue', 'navy', 'violet', 'indigo', 'plum', 'magenta', 'purple','white', 'silver'];
 
 var mutedColors = ['tan', 'brown', 'grey', 'dark-grey', 'light-grey', 'light-brown','dark-brown', 'beige'];
 
-var emotions = ['saddened', 'disgusted', 'surprised', 'angered', 'delighted', 'disturbed', 'scared'];
+var emotions = ['saddened', 'disgusted', 'surprised', 'angered', 'delighted', 'scared'];
+
+var swords = ['longsword', 'flyssa', 'sabre', 'scimitar', 'katana', 'golok', 'falx', 'gladius', 'falchion', 'claymore', 'rapier', 'zweihander', 'longsword', 'longsword', 'longsword', 'longsword']
+
+
+// list of actions i've used so far:
+// rest between trips
+// live peacefully
+// wait for mercenary work
+// travel to town.name
