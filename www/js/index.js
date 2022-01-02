@@ -309,10 +309,11 @@ function chooseDungDesc(){
 }
 
 class Dungeon{
-    constructor(name=chooseDungeonName(), loc=chooseDungeonPlace(), description=chooseDungDesc()){
+    constructor(name=chooseDungeonName(), loc=chooseDungeonPlace(), description=chooseDungDesc(), countdown=30){
         this.name = name,
         this.loc = loc,
-        this.description = description
+        this.description = description,
+        this.countdown = countdown
     }
 }
 
@@ -404,11 +405,241 @@ function chooseMagic(){
         return true;
     } else {return false;}
 }
+function chooseOpinions(){
+    //opinions
+    characters = shuffle(characters);
+
+    for (topic of keywords){
+        var opi = new Opinion(topic, undefined, undefined);
+        this.opinions.push(opi);
+    }
+    //have better relationship with family.
+    for (rel of this.relations){
+        if (rel.relation == 'father' || rel.relation == 'mother' || rel.relation == 'married'){
+            for (op of this.opinions){
+                if (rel.keyword == op.keyword){
+                    op.affinity = getRand(40,80);
+                    op.familiar = true;
+                }
+            }
+        }
+        if (rel.relation == 'family' || rel.relation == 'child'){
+            for (op of this.opinions){
+                if (rel.keyword == op.keyword){
+                    if (op.affinity < 0){
+                        op.affinity = getRand(0,60); 
+                        op.familiar = true;}
+                }
+            }
+        }
+        //better relationship between merchant and guard
+        if (rel.relation == 'bodyguard' || rel.relation == 'employer'){
+            for (op of this.opinions){
+                if (rel.keyword == op.keyword){
+                    op.affinity = getRand(0,79); 
+                    op.familiar = true;}
+            }
+            this.party.push(rel.keyword);
+        }
+    }
+    // don't hate hometown too much
+    for (op of this.opinions){
+        if (op.keyword == this.hometown.name){
+            op.familiar = true;
+            if (op.affinity < 0){op.affinity = getRand(-20, 40)}
+        }
+    }
+     
+    // everyone knows and likes big 8
+    for (legend of legends){
+        for (op of this.opinions){
+            if (op.keyword == legend){
+                op.familiar = true;
+                op.affinity = getRand(0, 60);
+            }
+        }
+    }
+
+    // everyone dislikes bandits
+    for (bandit of bandits){
+        for (op of this.opinions){
+            if (op.keyword == bandit){
+                op.affinity = getRand(-60, -10);
+            }
+        }
+    }
+    // everyone hates orsted
+    for (op of this.opinions){
+        if (op.keyword == 'ORSTED THE ANNIHILATOR'){
+            op.familiar = true;
+            op.affinity = getRand(-80, -60);
+        }
+    }
+    
+    //familiar and friendlier with locals
+    for (p2 of characters){
+        if (p2.hometown.name == this.hometown.name){
+            for (op of this.opinions){
+                if (op.keyword == p2.name){
+                    op.familiar = true;
+                    op.affinity = op.affinity + 20;
+                }
+            }
+        }
+    }
+    
+}  
+function chooseRelations(){
+//mom
+characters = shuffle(characters);
+let mothered = false;
+for (rel of this.relations){
+    if (rel.relation == 'mother'){mothered = true;}
+}
+if (mothered == false){
+    for (p2 of characters){
+        if (p2.age > this.age + 18 && p2.hometown.name == this.hometown.name){
+            if (p2.gender == 'female'){
+                let childCounter = 0;
+                for (rel of p2.relations){
+                    if (rel.relation == 'child'){childCounter++;}
+                }
+                if (childCounter < 4){
+                    let a = new Relation(p2.name, 'mother');
+                    this.relations.push(a);
+                    let b = new Relation(this.name, 'child');
+                    p2.relations.push(b);
+
+                    //check if married
+                    for (rel of p2.relations){
+                        if (rel.relation == 'married'){
+                            let dad = rel.keyword;
+                            let c = new Relation(dad, 'father');
+                            this.relations.push(c);
+                            for (dude of characters){
+                                if (dude.name == dad){
+                                    let d = new Relation(this.name, 'child');
+                                    dude.relations.push(d);
+                                    
+                                }
+                            }
+                        }
+                    }
+                    break;   
+                }
+            }
+        }
+    }
+}
+mothered = false;
+for (rel of this.relations){
+    if (rel.relation == 'mother'){mothered = true;}
+}
+if (mothered == false){
+    let e = new Relation('Dead', 'mother');
+    this.relations.push(e);
+}
+
+//dad
+characters = shuffle(characters);
+let fathered = false;
+for (rel of this.relations){
+    if (rel.relation == 'father'){fathered = true;}
+}
+if (fathered == false){
+    for (p2 of characters){
+        if (p2.age > this.age + 18 && p2.hometown.name == this.hometown.name){
+            if (p2.gender == 'male' && p2.name != 'ORSTED THE ANNIHILATOR'){
+                let childCounter = 0;
+                for (rel of p2.relations){
+                    if (rel.relation == 'child'){childCounter++;}
+                }
+                if (childCounter < 4){
+                    let a = new Relation(p2.name, 'father');
+                    this.relations.push(a);
+                    let b = new Relation(this.name, 'child');
+                    p2.relations.push(b);
+
+                    //check if married
+                    for (rel of p2.relations){
+                        if (rel.relation == 'married'){
+                            let mom = rel.keyword;
+                            let c = new Relation(mom, 'mother');
+                            this.relations.push(c);
+                            for (gal of characters){
+                                if (gal.name == mom){
+                                    let d = new Relation(this.name, 'child');
+                                    gal.relations.push(d);
+                                }
+                            }
+                        }
+                    } 
+                    break;   
+                }
+            }
+        }
+    }
+}
+fathered = false;
+for (rel of this.relations){
+    if (rel.relation == 'father'){fathered = true;}
+}
+if (fathered == false){
+    let f = new Relation('Dead', 'father');
+    this.relations.push(f);
+}
+
+
+//find family
+characters = shuffle(characters);
+
+for (rel of this.relations){
+    if (rel.relation == 'father' || rel.relation == 'mother'){
+        let parent = rel.keyword;
+        for (target of characters){
+            if (target.name == parent){
+                for (peep of target.relations){
+                    //relations of the parents
+                    if (peep.relation == 'child' && peep.keyword != this.name){
+                        let a = new Relation(peep.keyword, 'family');
+                        this.relations.push(a);
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+//trim duplicates
+
+for (p1 in this.relations){
+    for (p2 in this.relations){
+        if (p1 != p2 && this.relations[p1].keyword == this.relations[p2].keyword && this.relations[p1].relation == this.relations[p2].relation){
+            this.relations.splice(p2,1);
+        }
+    }
+}
+
+
+//dead parents if nothing
+
+let momflag = false;
+let dadflag = false;
+for (p1 of this.relations){
+    if (p1.relation == 'mother'){momflag = true;}
+    if (p1.relation == 'father'){dadflag = true;}
+}
+if (momflag == false){this.relations.push(new Relation('Dead', 'mother'));}
+if (dadflag == false){this.relations.push(new Relation('Dead', 'father'));}
+
+}
 
 class Person {
     constructor(loc, gender=chooseGender(), name=chooseName(gender), age=getRand(18, 80), personality=choosePersonality(), haircolor=chooseHaircolor(),
-    eyecolor=chooseEyecolor(), hometown=chooseHometown(loc), opinions=[], goals=chooseGoals(hometown.name), keyMemories=[], clothing=chooseClothing(),
-    weapon='fists', strength=getRand(1,20), money=getRand(20,50), goods=(new Goods()), magic=chooseMagic(), relations=[], party=[name]){
+    eyecolor=chooseEyecolor(), hometown=chooseHometown(loc), goals=chooseGoals(hometown.name), keyMemories=[], clothing=chooseClothing(),
+    weapon='fists', strength=getRand(1,20), money=getRand(20,50), goods=(new Goods()), magic=chooseMagic(), relations=chooseRelations(), opinions=chooseOpinions(), party=[name]){
+        this.loc = loc,
         this.gender = gender,
         this.name = name,
         this.age = age,
@@ -416,42 +647,58 @@ class Person {
         this.haircolor = haircolor,
         this.eyecolor = eyecolor,
         this.hometown = hometown,
-        this.opinions = opinions,
         this.goals = goals,
         this.keyMemories = keyMemories,
         this.clothing = clothing,
         this.weapon = weapon,
-        this.loc = loc,
         this.strength = strength,
         this.money = money,
         this.goods = goods,
         this.magic = magic,
         this.relations = relations,
+        this.opinions = opinions,
         this.party = party 
     }
 }
 
+function chooseArtifactType(){
+    let roll = getRand(0,2);
+    if (roll==1){return 'weapon';}
+    else{ return 'clothing';}
+}
 
-function chooseArtifactName(){
-    let roll = getRand(0,3);
-    let allUp = niceUpper.concat(armorUpper);
-    let type = 'dildo';
-    if (roll==0){type = niceLower[getRand(0,niceLower.length-1)];}
-    if (roll==1){type = allUp[getRand(0,allUp.length-1)];}
-    if (roll==2){type = headgear[getRand(0,headgear.length-1)];}
-    if (roll==3){type = capes[getRand(0,capes.length-1)];}
-    //I set sword names, but random artifacts can be completely generated
-    let name = artifactNames[0,getRand(0,artifactNames.length-1)];
-    artifactNames.splice(name,1);
-    let color = colors[getRand(0,colors.length-1)];
-    desc = artifactDesc[getRand(0, artifactDesc.length-1)]
-    artifactDesc.splice(desc,1);
-    return name+', '+color+' '+type+' of '+desc;
+function chooseArtifactName(gear){
+
+    if (gear == 'clothing'){
+        let roll = getRand(0,3);
+        let allUp = niceUpper.concat(armorUpper);
+        let type = 'dildo';
+        if (roll==0){type = niceLower[getRand(0,niceLower.length-1)];}
+        if (roll==1){type = allUp[getRand(0,allUp.length-1)];}
+        if (roll==2){type = headgear[getRand(0,headgear.length-1)];}
+        if (roll==3){type = capes[getRand(0,capes.length-1)];}
+
+        let name = artifactNames[0,getRand(0,artifactNames.length-1)];
+        artifactNames.splice(name,1);
+        let color = colors[getRand(0,colors.length-1)];
+        desc = artifactDesc[getRand(0, artifactDesc.length-1)]
+        artifactDesc.splice(desc,1);
+        return name+', '+color+' '+type+' of '+desc;
+    }
+    else {
+        type = swords[getRand(0,swords.length-1)];
+        let name = artifactNames[0,getRand(0,artifactNames.length-1)];
+        artifactNames.splice(name,1);
+        let color = colors[getRand(0,colors.length-1)];
+        desc = artifactDesc[getRand(0, artifactDesc.length-1)]
+        artifactDesc.splice(desc,1);
+        return name+', '+color+' '+type+' of '+desc;
+    }
 }
 
 
 class Artifact {
-    constructor(loc, name=chooseArtifactName(), bonus=getRand(50,300), value=getRand(500,3000), type='clothing'){
+    constructor(loc, type=chooseArtifactType(), name=chooseArtifactName(type), bonus=getRand(50,300), value=getRand(500,3000)){
         this.name = name,
         this.loc = loc, //loc is only used if dropped. if in inventory then set loc to 0,0
         this.bonus = bonus,
@@ -1100,7 +1347,7 @@ for (person of characters){
                                 person.relations.push(c);
                                 for (dude of characters){
                                     if (dude.name == dad){
-                                        let d = new Relation(person, 'child');
+                                        let d = new Relation(person.name, 'child');
                                         dude.relations.push(d);
                                         
                                     }
@@ -1150,7 +1397,7 @@ for (person of characters){
                                 person.relations.push(c);
                                 for (gal of characters){
                                     if (gal.name == mom){
-                                        let d = new Relation(person, 'child');
+                                        let d = new Relation(person.name, 'child');
                                         gal.relations.push(d);
                                     }
                                 }
@@ -1231,6 +1478,7 @@ if (ismarried == false && getRand(0,100) > 50){
 
 //trim duplicates
 for (person of characters){
+    console.log(person);
     for (p1 in person.relations){
         for (p2 in person.relations){
             if (p1 != p2 && person.relations[p1].keyword == person.relations[p2].keyword && person.relations[p1].relation == person.relations[p2].relation){
@@ -1287,7 +1535,7 @@ function seedOpinions(){
                         op.affinity = getRand(0,79); 
                         op.familiar = true;}
                 }
-                person.party.push(rel.keyword);
+                //person.party.push(rel.keyword);
             }
         }
         // don't hate hometown too much
@@ -1348,14 +1596,15 @@ function seedOpinions(){
             
 }
 
-function spawnCommoner(town, age=undefined){
-    let character = new Person(town.loc, undefined, undefined, age, undefined, undefined, undefined, town);
+function spawnCommoner(town, age=undefined, empty=[], empty2=[]){
+    let character = new Person(town.loc, undefined, undefined, age, undefined, undefined, undefined, town, undefined, 
+        undefined, undefined, undefined, undefined, undefined, undefined, undefined, empty, empty2);
     characters.push(character);
     keywords.push(character.name);
     commoners.push(character.name);
 }
 
-function spawnMercenary(town, age=undefined){
+function spawnMercenary(town, age=undefined, empty=[], empty2=[]){
     let goal = new Goal(town.name, 'wait for mercenary work');
     let goals = [];
     goals.push(goal);
@@ -1373,15 +1622,17 @@ function spawnMercenary(town, age=undefined){
     let weapon = swords[getRand(0, swords.length-1)];;
     let strength = getRand(20,100);
     let money = getRand(50,200);
+    
 
-    let character = new Person(town.loc, undefined, undefined, age, undefined, undefined, undefined, town, undefined, goals, undefined, clothing, weapon, strength, money);
+    let character = new Person(town.loc, undefined, undefined, age, undefined, undefined, undefined, town, goals, undefined, clothing, weapon, strength, money,
+        undefined, undefined, empty, empty2);
     characters.push(character);
     keywords.push(character.name);
     town.mercs.push(character.name);
     mercenaries.push(character.name);
 }
 
-function spawnMerchant(town, age=undefined){
+function spawnMerchant(town, age=undefined, empty=[], empty2=[], empty3=[], empty4=[]){
     let goals = [];
     let target = towns[getRand(0,towns.length-1)];
     let goal = new Goal(town.name, 'rest between trips');
@@ -1403,7 +1654,8 @@ function spawnMerchant(town, age=undefined){
 
     let money = getRand(200,800);
     let goods = new Goods(getRand(0,100), getRand(0,100), getRand(0,100), getRand(0,100))
-    let character = new Person(town.loc, undefined, undefined, age, undefined, undefined, undefined, town, undefined, goals, undefined, clothing, undefined, undefined, money, goods);
+    let character = new Person(town.loc, undefined, undefined, age, undefined, undefined, undefined, town, goals, 
+        undefined, clothing, undefined, undefined, money, goods, undefined, empty, empty2, undefined);
     
 
     //bodyguards
@@ -1442,10 +1694,15 @@ function spawnMerchant(town, age=undefined){
         let weapon = swords[getRand(0, swords.length-1)];
         let strength = getRand(60,160);
         let money = getRand(100,200);
-        let guard = new Person(town.loc, undefined, undefined, undefined, undefined, undefined, undefined, town, undefined, goals, undefined, clothing, weapon, strength, money);
+        
+        
+        let guard = new Person(town.loc, undefined, undefined, undefined, undefined, undefined, undefined, town, goals, undefined, clothing, weapon, strength, money,
+            undefined, undefined, empty3, empty4, undefined);
         
         let a = new Relation(guard.name, 'bodyguard');
         let b = new Relation(character.name, 'employer');
+        character.party.push(guard.name);
+        guard.party.push(character.name);
         guard.relations.push(b);
         character.relations.push(a);
 
@@ -1458,7 +1715,7 @@ function spawnMerchant(town, age=undefined){
     merchants.push(character.name);
 }
 
-function spawnAdventurer(town, age=undefined){
+function spawnAdventurer(town, age=undefined, empty=[], empty2=[]){
     let goals = [];
     let goal = new Goal(town.name, 'rest between trips');
     goals.push(goal);
@@ -1491,15 +1748,15 @@ function spawnAdventurer(town, age=undefined){
     let money = getRand(200,350);
     let magic = false;
     if (1 == getRand(0,1)){magic = true;}
-    
 
-    let character = new Person(town.loc, undefined, undefined, age, undefined, undefined, undefined, town, undefined, goals, undefined, clothing, weapon, strength, money, undefined, magic);
+    let character = new Person(town.loc, undefined, undefined, age, undefined, undefined, undefined, town, goals, undefined, clothing, weapon, strength, money, 
+        undefined, magic, empty, empty2);
     characters.push(character);
     keywords.push(character.name);
     adventurers.push(character.name);
 }
 
-function spawnLegend(town){
+function spawnLegend(town, empty=[], empty2=[]){
     let goals = [];
     let goal = new Goal(town.name, 'rest between trips');
     goals.push(goal);
@@ -1565,7 +1822,8 @@ function spawnLegend(town){
         name = name+', '+fulltitles.splice(getRand(0,fulltitles.length-1),1).toString();
         }
 
-    let character = new Person(town.loc, gender, name, undefined, undefined, haircolor, eyecolor, town, undefined, goals, undefined, clothing, weapon, strength, money, undefined, magic);
+    let character = new Person(town.loc, gender, name, undefined, undefined, haircolor, eyecolor, town, goals, undefined, 
+        clothing, weapon, strength, money, undefined, magic, empty, empty2);
     characters.push(character);
     keywords.push(character.name);
     legends.push(character.name);
@@ -1589,7 +1847,7 @@ function spawnSuperiorM(x,y, goals=undefined){
     monsters.push(monster);
 }
 
-function spawnBandit(x,y){
+function spawnBandit(x,y, empty = [], empty2=[]){
     let goals = [];
     let goal = new Goal(x+','+y, 'rest');
     goals.push(goal);
@@ -1623,8 +1881,9 @@ function spawnBandit(x,y){
     let money = getRand(1,40);
     loc = {x:x,y:y};
     let town = towns[getRand(0, towns.length-1)];
-
-    let character = new Person(loc, undefined, undefined, undefined, undefined, undefined, undefined, town, undefined, goals, undefined, clothing, weapon, strength, money);
+ 
+    let character = new Person(loc, undefined, undefined, undefined, undefined, undefined, undefined, town, goals, undefined, clothing, weapon, strength, money, undefined, 
+        undefined, empty, empty2);
     characters.push(character);
     keywords.push(character.name);
     bandits.push(character.name);
@@ -1652,7 +1911,7 @@ function seedCharacters(){
         let goal = new Goal(mark.name, 'Have an Adventure! Explore '+mark.name);
         let goals = [];
         goals.push(goal);
-        age = getRand(18,30);
+        let age = getRand(18,30);
         player = new Person(birthplace.loc,undefined,undefined,age,undefined,undefined,undefined,birthplace,undefined, goals);
         characters.push(player);
         keywords.push(player.name);
@@ -1665,7 +1924,7 @@ function seedCharacters(){
             for (i=0; i<commonies;i++){
                 spawnCommoner(town);
             } 
-        }
+        } 
     }
     //mercenaries
     //these guys wait around for a job. If a bounty is posted or the ruler orders them to fight, they will mobilize. Can be hired by anyone for protection.
@@ -1732,8 +1991,9 @@ function seedCharacters(){
         let name = 'ORSTED THE ANNIHILATOR';
         let eyecolor = 'Golden';
         let haircolor = 'White';
+        let empty = [];
 
-        orsted = new Person(startloc.loc, gender, name, 100, 'Evil', haircolor, eyecolor, towns[getRand(0,towns.length-1)], undefined, goals, undefined, clothing, weapon, strength, money, undefined, magic);
+        orsted = new Person(startloc.loc, gender, name, 100, 'Evil', haircolor, eyecolor, towns[getRand(0,towns.length-1)], goals, undefined, clothing, weapon, strength, money, undefined, magic, empty, empty);
         characters.push(orsted);
         keywords.push(orsted.name);
         legends.push(orsted.name);

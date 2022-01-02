@@ -278,7 +278,7 @@ var headgear = ['hood', 'half helm', 'barbute helmet', 'full helm with horns', '
 var merchHats = ['hood', 'turban', 'wool cap', 'coif', 'fur hat', 'wool scarf'];
 
 var miscClothing = ['gloves', 'fingerless gloves', 'sturdy boots', 'reliable boots', 'wooden clogs', 'sandals', 'leather belt', 'skirt', 'huge magicians hat', 'monocle', 'bandana', 'eyepatch', 'ginormous clown shoes',
-'medal for heroism', 'steel gauntlets', 'iron gauntlets', 'leather backpack', 'top hat', 'wizard staff', 'shroud', 'red-tinted sunglasses', 'aviators', 'sheathe', 'golden necklace', 'silver necklace',
+'medal for heroism', 'steel gauntlets', 'iron gauntlets', 'leather backpack', 'top hat', 'wizard staff', 'shroud', 'tinted sunglasses', 'aviators', 'sheathe', 'golden necklace', 'silver necklace',
 'ruby necklace', 'emerald neckalce', 'saphhire necklace'];
 
 var upperClothes = ['shirt', 'vest', 'tunic', 'doublet', 'jerkin', 'wool coat', 'unbuttoned shirt', 'dirty shirt', 'ripped tunic', 'dirty tunic', 'worn coat', 'worn jerkin', 'ripped cloak'];
@@ -298,7 +298,8 @@ var mutedColors = ['tan', 'brown', 'grey', 'dark-grey', 'light-grey', 'light-bro
 
 var emotions = ['sad', 'disgusted', 'surprised', 'angry', 'happy', 'scared', 'indifferent'];
 
-var swords = ['longsword', 'flyssa', 'sabre', 'scimitar', 'katana', 'golok', 'falx', 'gladius', 'falchion', 'claymore', 'rapier', 'zweihander', 'longsword', 'longsword', 'longsword', 'longsword']
+var swords = ['longsword', 'flyssa', 'sabre', 'scimitar', 'katana', 'golok', 'falx', 'gladius', 'falchion', 'claymore', 'rapier', 'zweihander', 'longsword', 'longsword', 'longsword', 'longsword', 'spear', 'spear', 
+'halberd', 'crescent sword', 'two-handed axe', 'axe', 'polearm', 'greatsword', 'longsword'];
 
 var monsterMinor = ['Goblin', 'Kobold', 'Giant Spider','Starving Bear'];
 

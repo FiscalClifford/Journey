@@ -10,9 +10,12 @@ function simulate(yeers, days){
         //each day has 3 phase
         for (phase = 0; phase<3; phase++){
             //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ character logic ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
+            characters.shuffle();
             for (char of characters){
-                //act based on goal
+                //interact with characters or monsters on current tile. Talk, pick up artifacts, etc.
+                interact(char);
+
+                //act based on goal. move, fight, explore.
                 enactGoal(char);
 
                 //interact with characters or monsters on current tile. Fight, talk, etc.
@@ -58,10 +61,11 @@ function simulate(yeers, days){
         }
         //new people come of age over time
         for (town of towns){
-            if (69 == getRand(0,100)){spawnCommoner(town, 18);}
-            if (69 == getRand(0,100)){spawnMerchant(town, 18);}
-            if (69 == getRand(0,100)){spawnMercenary(town, 18);}
-            if (69 == getRand(0,100)){spawnAdventurer(town, 18);}
+            //it is very important you include undefined at the end!
+            if (69 == getRand(0,100)){spawnCommoner(town, 18, undefined, undefined);}
+            if (69 == getRand(0,100)){spawnMerchant(town, 18, undefined, undefined, undefined, undefined);}
+            if (69 == getRand(0,100)){spawnMercenary(town, 18, undefined, undefined);}
+            if (69 == getRand(0,100)){spawnAdventurer(town, 18, undefined, undefined);}
         }
         //die of old age
         for (character of characters){
@@ -86,10 +90,30 @@ function simulate(yeers, days){
                 let j = getRand(1,sizeY-1);
                 if (grid[i][j].road == true){
                     bandFlag = false;
-                    spawnBandit(i,j);
+                    spawnBandit(i,j, undefined, undefined);
                 }
             }    
         }      
+        //replenish monsters and artifacts at dungeons after 30 days
+        for (dung of Dungeons){
+            let flag = false;
+            for (arti of artifacts){
+                if (arti.loc.x == dung.loc.x && arti.loc.y == dung.loc.y){
+                    flag = true;
+                }
+            }
+            if (flag == false){
+                dung.countdown--;
+                if (dung.countdown < 1){
+                    dung.countdown = 30;
+                    console.log(dung.name+' replenishing monster & loot.')
+                    spawnSuperiorM(dung.loc.x, dung.loc.y, undefined);
+                    let artifact = new Artifact({x:dung.loc.x,y:dung.loc.y});
+                    artifacts.push(artifact.name);
+                    keywords.push(artifact.name);
+                }  
+            }
+        }
 
 
 
