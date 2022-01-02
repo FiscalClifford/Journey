@@ -192,6 +192,26 @@ function isFamiliar(char, keyword){
     }
 }
 
+function getAff(char, keyword){
+    for (op of char.opinions){
+        if (op.keyword == keyword){
+            return op.affinity;
+        }
+    }
+}
+
+function getEmo(score){
+    if (score > 20){return 'happy';}
+    if (score <21 && score > -21){ return 'indifferent';}
+    if (score < -20){return 'angry';}
+}
+
+function getEmobyStrength(char1, char2){
+    if (char1.strength > char2.strength+30){return 'happy';}
+    else if (char1.strength+30 < char2.strength){return 'scared';}
+    else {return 'indifferent';}
+}
+
 ///////////////////////////////////////////////////////////////////// GLOBALS ////////////////////////////////////////////////////////
 
 var sizeX = 30;

@@ -152,8 +152,9 @@ enactGoal = function(char){
 
 interact = function(char){
     //interact with characters or monsters on current tile. Talk, pick up artifacts, etc.
+    famwith8(char);
     pickupArtifact(char);
-    noticeArtifact(char);
+    noticeNearby(char);
     talktoNearby(char);
     
 }
@@ -418,6 +419,16 @@ getbig8 = function(){
     return big;
 }
 
+famwith8 = function(char){
+    for (op of char.opinions){
+        for (big of big8){
+            if (op.keyword == big.name){
+                op.familiar = true;
+            }
+        }
+    }
+}
+
 sortArr = function(arr){
     for (i = 1; i<arr.length; i++){
         let j = i;
@@ -435,7 +446,8 @@ noticeNearby = function(me){
     //same thing for if the person is part of the big 8
     //same thing for if they are familiar with a person and see them in the same tile
     //same thing for if they notice a monster in the same tile
-    //same thing for if they see a fight in the same tile
+    //when people get in a fight i'll add the key memory within that function.
+    //when people arrive at a location i'll add the key memory within that function.
 
     
     let nearby = [];
@@ -499,8 +511,52 @@ noticeNearby = function(me){
     }
 
     //notice big 8
+    for (near of nearby){
+        for (big of big8){
+            if (near.name == big.name){
+                let emtotion = getEmo(getAff(me, big.name));
+                mem = new Keymemory(day, [me.name, big.name], {x:me.loc.x,y:me.loc.y}, 'I saw '+big.name, emotion);
+                me.keyMemories.push(mem); 
+            }
+        }
+    }
 
+    //notice someone they are familiar with
+    for (near of nearby){
+        if (isFamiliar(me, near.name)){
+            let emtotion = getEmo(getAff(me, near.name));
+            mem = new Keymemory(day, [me.name, near.name], {x:me.loc.x,y:me.loc.y}, 'I saw '+near.name, emotion);
+            me.keyMemories.push(mem); 
+        }
+        else {
+            mem = new Keymemory(day, [me.name, near.name], {x:me.loc.x,y:me.loc.y}, 'I saw a stranger with '+near.clothing.toString()+' pass by.', 'indifferent');
+            me.keyMemories.push(mem); 
+        }
+    }
+    //notice a monster nearby
+    for (monster of monsters){
+        if (monster.loc.x == me.loc.x && monster.loc.y == me.loc.y){
+            let emotion = getEmobyStrength(me, monster);
+            mem = new Keymemory(day, [me.name, near.name], {x:me.loc.x,y:me.loc.y}, 'I saw a '+monster.name+'!', emotion);
+            me.keyMemories.push(mem); 
+        }
+    }
 
+    //notice a bandit nearby
+    for (near of nearby){
+        if (containsItem(bandits, near.name)){
+            if (isFamiliar(me, near.name)){
+                let emotion = getEmobyStrength(me, near);
+                mem = new Keymemory(day, [me.name, near.name], {x:me.loc.x,y:me.loc.y}, 'I saw '+near.name+' the bandit!', emotion);
+                me.keyMemories.push(mem); 
+            }
+            else {
+                let emotion = getEmobyStrength(me, near);
+                mem = new Keymemory(day, [me.name, 'a stranger'], {x:me.loc.x,y:me.loc.y}, 'I saw a bandit!', emotion);
+                me.keyMemories.push(mem); 
+            }
+        }
+    }
 }
 
 }
