@@ -205,6 +205,7 @@ var legends = [];
 var monsters = [];
 var bandits = [];
 var dead = [];
+var artifacts = [];
 var day = 1000;
 var kiloyear = 100;
 var player;
@@ -427,6 +428,35 @@ class Person {
         this.magic = magic,
         this.relations = relations,
         this.party = party 
+    }
+}
+
+
+function chooseArtifactName(){
+    let roll = getRand(0,3);
+    let allUp = niceUpper.concat(armorUpper);
+    let type = 'dildo';
+    if (roll==0){type = niceLower[getRand(0,niceLower.length-1)];}
+    if (roll==1){type = allUp[getRand(0,allUp.length-1)];}
+    if (roll==2){type = headgear[getRand(0,headgear.length-1)];}
+    if (roll==3){type = capes[getRand(0,capes.length-1)];}
+    //I set sword names, but random artifacts can be completely generated
+    let name = artifactNames[0,getRand(0,artifactNames.length-1)];
+    artifactNames.splice(name,1);
+    let color = colors[getRand(0,colors.length-1)];
+    desc = artifactDesc[getRand(0, artifactDesc.length-1)]
+    artifactDesc.splice(desc,1);
+    return name+', '+color+' '+type+' of '+desc;
+}
+
+
+class Artifact {
+    constructor(loc, name=chooseArtifactName(), bonus=getRand(50,300), value=getRand(500,3000), type='clothing'){
+        this.name = name,
+        this.loc = loc, //loc is only used if dropped. if in inventory then set loc to 0,0
+        this.bonus = bonus,
+        this.value = value,
+        this.type = type // 'weapon' if sword
     }
 }
 
@@ -969,6 +999,11 @@ function seedDungeons(){
                 let mark = new Dungeon(undefined, place, undefined);
                 Dungeons.push(mark);
                 keywords.push(mark.name);
+
+                //create artifacts!
+                let artifact = new Artifact(place);
+                artifacts.push(artifact.name);
+                keywords.push(artifact.name);
                 q++;
             }
         }
@@ -1558,15 +1593,15 @@ function spawnBandit(x,y){
     let goals = [];
     let goal = new Goal(x+','+y, 'rest');
     goals.push(goal);
-    let goal = new Goal(x+','+y, 'rob weak passerby');
+    goal = new Goal(x+','+y, 'rob weak passerby');
     goals.push(goal);
-    let goal = new Goal(x+','+y, 'rest');
+    goal = new Goal(x+','+y, 'rest');
     goals.push(goal);
-    let goal = new Goal(x+','+y, 'rob weak passerby');
+    goal = new Goal(x+','+y, 'rob weak passerby');
     goals.push(goal);
-    let goal = new Goal(x+','+y, 'rest');
+    goal = new Goal(x+','+y, 'rest');
     goals.push(goal);
-    let goal = new Goal(x+','+y, 'rob weak passerby');
+    goal = new Goal(x+','+y, 'rob weak passerby');
     goals.push(goal);
     let target = towns[getRand(0,towns.length-1)];
     goal = new Goal(target.name, 'travel to '+target.name);
@@ -1776,6 +1811,8 @@ function seedCharacters(){
 
     seedRelations();
     seedOpinions();
+
+    console.log(characters[0,characters.length-1]);
    
 }
 

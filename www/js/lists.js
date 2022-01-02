@@ -247,6 +247,21 @@ var dungeonNames = ['Castle of Doom', 'Hall of Souls', "Spire of Reckoning", 'Pi
 'The Black Tower', 'The Silver Spire', 'The Ivory Tower', 'The Sinister Spire', 'The Haunted Garden', 'The Realm of Regrets', 'The Mysterious Maze', 'The Foggy Moore', 'The Wailing Castle', 'The Haunted Battlefield',
 'The Abandoned Mine', 'The Forest of Fallen Giants', 'Fortress of the Sun', 'Fortress of the Moon', 'Spire of the Eclipse'];
 
+var artifactNames = ['Erolith','Uritris','Elphine','Aywin','Grequinal','Folduin','Yesjyre','Delmuth','Glynlana','Aiduin','Caicaryn','Aolis','Xyrrora','Giullis','Venris','Yesanith','Reystina','Shyrrik',
+'Elasandoral','Ariawyn','Bryvalur','Zylyarus','Haldir','Gentoris','Ruvyn','Carnala','Eldrin','Kelzeiros','Bellas','Nerijeon','Vamir','Ilinala','Eldaerenth','Balren','Elion','Wynharice','Riluaneth',
+'Dacan','Sylvar','Ilitoris','Tarathiel','Caiberos','Folre','Farbanise','Ryo','Ilibalar','Halueth','Bryynore','Navarre','Wrangwyn','Saevel','Helenorin','Filaurel','Keybalar','Rolim','Kelbanise','Halaema',
+'Miratumal','Malonne','Ilixidor','Faelyn','Yeldan','Estelar ','Zumgolor','Lathlaeril','Yelthana','Nelaeryn','Magleth','Navarre','Heirel','Cyran','Crarora','Khidell','Balleth','Feno','Daewynn','Myriil',
+'Presbella','Sylvar','Wranxalim','Naesala','Yingwyn','Alanis','Crayarus','Tarathiel','Ralowarin','Mirthal','Waessalor','Avourel','Keyleth','Sylmare','Keyven','Paeral','Keymaris','Hamon','Miasalor',
+'Ithronel','Glyndithas','Faelyn','Wranmenor','Lazziar','Lorabanise','Ehlark','Reylee','Lethonel','Gilceran','Sinaht','Krisvalur','Amrynn','Fenceran','Sylmare','Valrora','Rolim','Wynbella','Rhalyf',
+'Sharel','Vulwin','Trisgolor','Gaelira','Yelquinal','Eshenesra','Zylcan','Delsanra','Faera','Leena','Nerimyar','Tanulia','Umesys','Immianthe','Elwenys','Jeardra','Beilamin','Zaleria','Raloynore',
+'Yrathea','Magcyne','Ariawyn','Umegeiros','Illithor','Uriphine','Jhaan','Ralojeon','Arathorn','Neribella','Ailre','Lurieth','Afamrail','Oridi','Vulen','Zinhana','Malon','Origeiros','Rilitar',
+'Sarjyre','Elkhazel','Ellana','Airdan','Qivalur'];
+
+var artifactDesc = ['Hungering','Sealing','Liberty','Shade','Flames','Mystery','TrueSight','Revitilization','Gluttony','Anarchy','Tenacity','Animated Ice','Echoes','Foresight','Silence',
+'Light','Darkness','Destruction','Venom','Mending','Dominion','Prosperity','Ruination','Spiritualism','Decay','Desire','Hollowing','Temptation','Protection','Lunacy','Death','Life',
+'Grace','Vice','Peace','Sanctity','Oblivion','Fortune','Black Magic','Apathy','Mania','Fate','Auroras','Skulls','Paradise','Depravity','Storms','Truth','Divinity','Gold','Serendipity',
+'Chaos','Strength','Luck','The Occult','Passion','Anguish','Eternity'];
+
 var eyeColors = ['light blue', 'blue', 'dark blue', 'gray', 'stormy blue', 'blue-gray', 'green', 'hazel', 'amber', 'light brown', 'brown', 'dark brown', 'chestnut',
 'brown','brown','brown','brown','brown','light-brown','light-brown'];
 
@@ -261,6 +276,10 @@ var headgear = ['hood', 'half helm', 'barbute helmet', 'full helm with horns', '
 'leather studded helmet', 'rugged leather cowboy hat', 'cap with feather'];
 
 var merchHats = ['hood', 'turban', 'wool cap', 'coif', 'fur hat', 'wool scarf'];
+
+var miscClothing = ['gloves', 'fingerless gloves', 'sturdy boots', 'reliable boots', 'wooden clogs', 'sandals', 'leather belt', 'skirt', 'huge magicians hat', 'monocle', 'bandana', 'eyepatch', 'ginormous clown shoes',
+'medal for heroism', 'steel gauntlets', 'iron gauntlets', 'leather backpack', 'top hat', 'wizard staff', 'shroud', 'red-tinted sunglasses', 'aviators', 'sheathe', 'golden necklace', 'silver necklace',
+'ruby necklace', 'emerald neckalce', 'saphhire necklace'];
 
 var upperClothes = ['shirt', 'vest', 'tunic', 'doublet', 'jerkin', 'wool coat', 'unbuttoned shirt', 'dirty shirt', 'ripped tunic', 'dirty tunic', 'worn coat', 'worn jerkin', 'ripped cloak'];
 

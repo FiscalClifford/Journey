@@ -106,6 +106,7 @@ function simulate(yeers, days){
 
 
 enactGoal = function(char){
+    //make sure you check if a character is still alive first before searching for them or anything
 
 }
 
