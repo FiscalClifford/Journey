@@ -203,6 +203,7 @@ var commoners = [];
 var mercenaries = [];
 var legends = [];
 var monsters = [];
+var bandits = [];
 var day = 1000;
 var kiloyear = 100;
 var player;
@@ -570,12 +571,18 @@ function chooseMonsterDescription(name){
 
     return 'The monster type is '+color+' '+name+'. It is '+sizer+' and looks '+emotion+'.';
 }
+function chooseMonsterGoal(name){
+    let goal = new Goal(name, 'prowl for prey');
+    let goals = [];
+    goals.push(goal);
+}
 
 class Monster {
-    constructor(name, loc, strength=chooseMonsterStrength(name), clothing=chooseMonsterClothing(name), weapon=chooseMonsterWeapon(name), description=chooseMonsterDescription(name), party=[name]){
+    constructor(name, loc, goals=chooseMonsterGoal(name), strength=chooseMonsterStrength(name), clothing=chooseMonsterClothing(name), weapon=chooseMonsterWeapon(name), description=chooseMonsterDescription(name), party=[name]){
         //I'm gonna keep the constructors this way so that if i wanted to make custom monsters later I can.
         this.name = name,
         this.loc = loc,
+        this.goals = goals,
         this.strength = strength,
         this.clothing = clothing,
         this.weapon = weapon,
@@ -1264,11 +1271,20 @@ function seedOpinions(){
                 }
             }
         }
+
+        // everyone dislikes bandits
+        for (bandit of bandits){
+            for (op of person.opinions){
+                if (op.keyword == bandit){
+                    op.affinity = getRand(-60, -10);
+                }
+            }
+        }
         // everyone hates orsted
         for (op of person.opinions){
             if (op.keyword == 'ORSTED THE ANNIHILATOR'){
                 op.familiar = true;
-                op.affinity = getRand(-80, -40);
+                op.affinity = getRand(-80, -60);
             }
         }
         
@@ -1283,10 +1299,17 @@ function seedOpinions(){
                 }
             }
         }
-        for (op of orsted.opinions){
-            op.affinity = getRand(-60,0); 
-            op.familiar = true;}
-    }        
+        
+    }  
+    for (op of orsted.opinions){
+        op.affinity = getRand(-60,0); 
+        op.familiar = true;}
+        if (player != undefined){
+            if (op.keyword == player.name){
+                op.affinity = -100;
+            }
+        }
+            
 }
 
 function spawnCommoner(town, age=undefined){
@@ -1512,6 +1535,55 @@ function spawnLegend(town){
     legends.push(character.name);
 }
 
+function spawnMinorM(x,y,goals=undefined){
+    let mon = monsterMinor[getRand(0,monsterMinor.length-1)];
+    monster = new Monster(mon, {x:x,y:y}, goals);
+    monsters.push(monster);
+}
+
+function spawnMiddleM(x,y,goals=undefined){
+    let mon = monsterMiddle[getRand(0,monsterMiddle.length-1)];
+    monster = new Monster(mon, {x:x,y:y}, goals);
+    monsters.push(monster);
+}
+
+function spawnSuperiorM(x,y, goals=undefined){
+    let mon = monsterSuperior[getRand(0,monsterSuperior.length-1)];
+    monster = new Monster(mon, {x:x,y:y}, goals);
+    monsters.push(monster);
+}
+
+function spawnBandit(x,y){
+    let goals = [];
+    let goal = new Goal(x+','+y, 'rob weak passerby');
+    goals.push(goal);
+    let target = towns[getRand(0,towns.length-1)];
+    goal = new Goal(target.name, 'travel to '+target.name);
+    goals.push(goal);
+    goal = new Goal(target.name, 'live peacefully');
+    goals.push(goal);
+    
+    let clothing = [];
+    let color1 = mutedColors[getRand(0, mutedColors.length-1)];
+    let color2 = mutedColors[getRand(0, mutedColors.length-1)];
+    let pants = getRand(0, lowerClothes.length-1);
+    let shirt = getRand(0, upperClothes.length-1);
+    clothing.push(color1+' '+lowerClothes[pants]);
+    clothing.push(color2+' '+upperClothes[shirt]);
+    
+
+    let weapon = swords[getRand(0, swords.length-1)];;
+    let strength = getRand(10,60);
+    let money = getRand(1,40);
+    loc = {x:x,y:y};
+    let town = towns[getRand(0, towns.length-1)];
+
+    let character = new Person(loc, undefined, undefined, undefined, undefined, undefined, undefined, town, undefined, goals, undefined, clothing, weapon, strength, money);
+    characters.push(character);
+    keywords.push(character.name);
+    bandits.push(character.name);
+}
+
 function seedCharacters(){
 
     //1. add commoners
@@ -1631,53 +1703,54 @@ function seedCharacters(){
             for (j=1; j<sizeY; j++){
                 if (grid[i][j].water == false && grid[i][j].mountain == false){
                     if (grid[i][j].Dungeon == true){
-                        let mon = monsterSuperior[getRand(0,monsterSuperior.length-1)];
-                        monster = new Monster(mon, {x:i,y:j});
-                        monsters.push(monster);
+                        spawnSuperiorM(i,j,goals=undefined);
                     }
                     else if (grid[i][j].grassland == true){
                         let roll = getRand(0,3);
                         if (roll == 1){
-                            let mon = monsterMinor[getRand(0,monsterMinor.length-1)];
-                            monster = new Monster(mon, {x:i,y:j});
-                            monsters.push(monster);
+                            spawnMinorM(i,j,goals=undefined);
                         }
                     }
                     else if (grid[i][j].tundra == true){
                         let roll = getRand(0,2);
                         if (roll == 1){
-                            let mon = monsterMiddle[getRand(0,monsterMiddle.length-1)];
-                            monster = new Monster(mon, {x:i,y:j});
-                            monsters.push(monster);
+                            spawnMiddleM(i,j,goals=undefined);
                         }
                     }
                     else if (grid[i][j].desert == true){
                         let roll = getRand(0,1);
                         if (roll == 1){
                             if (roll == 1){
-                                let mon = monsterMiddle[getRand(0,monsterMiddle.length-1)];
-                                monster = new Monster(mon, {x:i,y:j});
-                                monsters.push(monster);
+                                spawnMiddleM(i,j,goals=undefined);
                             }
                             roll = getRand(0,1);
                             if (roll == 1){
-                                let mon = monsterMinor[getRand(0,monsterMinor.length-1)];
-                                monster = new Monster(mon, {x:i,y:j});
-                                monsters.push(monster);
+                                spawnMinorM(i,j,goals=undefined);
                             }
                         }
                     }
                     else if (grid[i][j].swamp == true){
                         let roll = getRand(0,1);
                         if (roll == 1){
-                            let mon = monsterSuperior[getRand(0,monsterSuperior.length-1)];
-                            monster = new Monster(mon, {x:i,y:j});
-                            monsters.push(monster);
+                            spawnSuperiorM(i,j,goals=undefined);
                         }
                     }
                 }
             }
         }
+    }
+
+    createBandits = function(){
+        for (i=1; i<sizeX;i++){
+            for (j=1; j<sizeY; j++){
+                if (grid[i][j].road == true){
+                    let roll = getRand(0,9);
+                    if (roll == 1){
+                        spawnBandit(i,j);
+                    }
+                }
+            }
+        }             
     }
 
     //createPlayer();
@@ -1688,6 +1761,7 @@ function seedCharacters(){
     createLegends();
     createOrsted();
     createMonsters();
+    createBandits();
 
     seedRelations();
     seedOpinions();
@@ -1720,5 +1794,5 @@ function generateWorld(){
 generateWorld();
 dispGrid();
 console.log('---------')
-simulate(10, 0);
+//simulate(10, 0);
 //playgame();

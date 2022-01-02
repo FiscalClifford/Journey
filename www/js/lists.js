@@ -292,5 +292,11 @@ var monstertypes = monsterMinor.concat(monsterMiddle).concat(monsterSuperior);
 // list of actions i've used so far:
 // rest between trips
 // live peacefully
+// help character.name (for bodyguards or people in your party)
 // wait for mercenary work
-// travel to town.name
+// travel to town.name or Dungeon.name
+// rob weak passerby
+// prowl for prey (monsters use this)
+// find information about character.name
+// hunt down character.name
+// kill character.name
