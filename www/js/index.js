@@ -204,6 +204,7 @@ var mercenaries = [];
 var legends = [];
 var monsters = [];
 var bandits = [];
+var dead = [];
 var day = 1000;
 var kiloyear = 100;
 var player;
@@ -1555,6 +1556,16 @@ function spawnSuperiorM(x,y, goals=undefined){
 
 function spawnBandit(x,y){
     let goals = [];
+    let goal = new Goal(x+','+y, 'rest');
+    goals.push(goal);
+    let goal = new Goal(x+','+y, 'rob weak passerby');
+    goals.push(goal);
+    let goal = new Goal(x+','+y, 'rest');
+    goals.push(goal);
+    let goal = new Goal(x+','+y, 'rob weak passerby');
+    goals.push(goal);
+    let goal = new Goal(x+','+y, 'rest');
+    goals.push(goal);
     let goal = new Goal(x+','+y, 'rob weak passerby');
     goals.push(goal);
     let target = towns[getRand(0,towns.length-1)];

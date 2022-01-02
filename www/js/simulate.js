@@ -26,6 +26,7 @@ function simulate(yeers, days){
             //+++++++++++++++++++++++++++++++++++++++++++++++++++ monster logic +++++++++++++++++++++++++++++++++
 
             for (mon of monsters){
+                enactGoal(mon);
                 //check if too many monsters on tile and spread out if so
                 spreadMonsters(mon);
             }
@@ -64,23 +65,43 @@ function simulate(yeers, days){
         }
         //die of old age
         for (character of characters){
-            if (character.age > 82 && containsItem(legends, character.name)==false){
-                if (69 == getRand(0,100)){
-                    //character dies of old age
-                    killCharacter(character);
-                }
-            }
-            if (character.age > 300){
+            if (character.age > 75 && containsItem(legends, character.name)==false){
                 if (69 == getRand(0,1000)){
                     //character dies of old age
                     killCharacter(character);
                 }
             }
-
-
-
-
+            if (character.age > 300){
+                if (69 == getRand(0,5000)){
+                    //character dies of old age
+                    killCharacter(character);
+                }
+            }
         }
+        //new bandits
+        if (1 == getRand(0,9)){
+            let bandFlag = true;
+            while (bandFlag){
+                let i = getRand(1,sizeX-1);
+                let j = getRand(1,sizeY-1);
+                if (grid[i][j].road == true){
+                    bandFlag = false;
+                    spawnBandit(i,j);
+                }
+            }    
+        }      
+
+
+
+
+
+
+
+
+
+
+
+
     }
 
 
@@ -104,8 +125,57 @@ reportEvents = function(){
    //KeyMemory (time, people[], loc, takeaway, emotion) 
 }
 
-killCharacter = function(character){
+killCharacter = function(character, place, peopleNearby=[character.name]){
+    //everyone that knows this person gets a key memory about their death 
+    for (char of characters){
+        for (rel of person.relations){
+            if (rel.keyword == character.name){
+                if (rel.familiar == true){
+                    let reactionScore = undefined;
+                    for (op of person.opinions){
+                        if (rel.keyword == op.keyword){
+                            reactionScore = op.affinity;
+                        }
+                    }
+                    if (reactionScore >10){emotion = 'sad';}
+                    else if (reactionScore <11 && reactionScore > -21){emotion = 'indifferent';}
+                    else if (reactionScore <-20){emotion = 'happy';}
+                    let takeAway = character.name+' died.'
+                    mem = new KeyMemory(day, peopleNearby, place, takeAway, emotion);
+                    char.keyMemories.push(mem);
+                }
+            }
+        }
+    }
+   
+    //clean up lists
+    for (charindex in characters){
+        if (characters[charindex].name == character.name){
+            dead.push(characters[charindex]);
+            characters.splice(charindex,1);
+            keywords.splice(characters[charindex].name,1);
 
+            if (containsItem(commoners, characters[charindex].name)){
+                commoners.splice(characters[charindex].name,1);
+            }
+            if (containsItem(merchants, characters[charindex].name)){
+                merchants.splice(characters[charindex].name,1);
+            }
+            if (containsItem(adventurers, characters[charindex].name)){
+                adventurers.splice(characters[charindex].name,1);
+            }
+            if (containsItem(legends, characters[charindex].name)){
+                legends.splice(characters[charindex].name,1);
+            }
+            if (containsItem(bandits, characters[charindex].name)){
+                bandits.splice(characters[charindex].name,1);
+            }
+            if (containsItem(mercenaries, characters[charindex].name)){
+                mercenaries.splice(characters[charindex].name,1);
+            }
+
+        }
+    }
 }
 
 transformToLegend = function(character){

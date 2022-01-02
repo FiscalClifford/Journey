@@ -277,7 +277,7 @@ var colors = ['pink', 'crimson', 'red', 'maroon', 'brown', 'rose', 'salmon', 'or
 
 var mutedColors = ['tan', 'brown', 'grey', 'dark-grey', 'light-grey', 'light-brown','dark-brown', 'beige'];
 
-var emotions = ['saddened', 'disgusted', 'surprised', 'angered', 'delighted', 'scared'];
+var emotions = ['sad', 'disgusted', 'surprised', 'angry', 'happy', 'scared', 'indifferent'];
 
 var swords = ['longsword', 'flyssa', 'sabre', 'scimitar', 'katana', 'golok', 'falx', 'gladius', 'falchion', 'claymore', 'rapier', 'zweihander', 'longsword', 'longsword', 'longsword', 'longsword']
 
