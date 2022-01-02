@@ -1,14 +1,18 @@
 // This is meant to simulate the world progress for a specified amount of time. I will have a seperate .js file for when the player can interact.
 // The two files should be largely similar however.
 //Basic(0-20) -> intermediate(20-60) -> advanced(60-120) -> expert(120-200) -> master(200-300) -> Queen(300-500) -> King(500-1000) -> God(1000+)
-
+var big8 = [];
 
 function simulate(yeers, days){
     days = days + (yeers*100); //convert kiloyears to days
     let yearCounter = 0;
     for (dayz=0; dayz<days; dayz++){
+        console.log('day '+day);
+        var big8 = getbig8();
+        console.log(big8);
         //each day has 3 phase
         for (phase = 0; phase<3; phase++){
+            
             //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ character logic ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
             characters.shuffle();
             for (char of characters){
@@ -17,9 +21,6 @@ function simulate(yeers, days){
 
                 //act based on goal. move, fight, explore.
                 enactGoal(char);
-
-                //interact with characters or monsters on current tile. Fight, talk, etc.
-                interact(char);
 
                 //determine if new goal necessary or add extra 
                 checkGoals(char);
@@ -51,6 +52,11 @@ function simulate(yeers, days){
             yearCounter = 0;
             for (character of characters){
                 character.age++;
+                //opinions of things slowly get less strong as the years go by
+                for (opi of character.opinions){
+                    if (opi.value < -23){opi.value = opi.value+3;}
+                    if (opi.value > 23){opi.value = opi.value-3;}
+                }
             }
         }
 
@@ -109,9 +115,19 @@ function simulate(yeers, days){
                     console.log(dung.name+' replenishing monster & loot.')
                     spawnSuperiorM(dung.loc.x, dung.loc.y, undefined);
                     let artifact = new Artifact({x:dung.loc.x,y:dung.loc.y});
-                    artifacts.push(artifact.name);
+                    artifacts.push(artifact);
                     keywords.push(artifact.name);
                 }  
+            }
+        }
+        //characters like those they travel with.
+        for (char of characters) {
+            for (key of char.party){
+                for (opi of char.opinions){
+                    if (opi.keyword == key && opi.keyword != char.name){
+                        if (opi.affinity <80){opi.affinity++;}
+                    }
+                }
             }
         }
 
@@ -135,7 +151,11 @@ enactGoal = function(char){
 }
 
 interact = function(char){
-
+    //interact with characters or monsters on current tile. Talk, pick up artifacts, etc.
+    pickupArtifact(char);
+    noticeArtifact(char);
+    talktoNearby(char);
+    
 }
 
 checkGoals = function(char){
@@ -240,6 +260,247 @@ transformToLegend = function(character){
 
         character.name = character.name+', '+fulltitles.splice(getRand(0,fulltitles.length-1),1).toString();
         }
+}
+
+pickupArtifact = function(char){
+    //pick up artifacts and equip it
+    let pickup = true;
+    for (artifact of artifacts){
+        if (artifact.loc.x == char.loc.x && artifact.loc.y == char.loc.y && artifact.loc.x != 0 && artifact.loc.y != 0){
+            mem = new Keymemory(day, [char.name], {x:char.loc.x,y:char.loc.y}, 'I found the '+artifact.name, 'happy');
+            char.keyMemories.push(mem);
+            for (op of char.opinions){
+                if (op.keyword == artifact.name){
+                    op.familiar == true;
+                    op.affinity = op.affinity + 10;
+                }
+            }
+            console.log(char.name+' found '+artifact.name+' at '+artifact.loc.x+','+artifact.loc.y);
+            if (artifact.type == 'weapon'){
+                //check if artifact weapon already
+                for (arti of artifacts){
+                    if (char.weapon == arti.name){
+                        if (artifact.bonus > arti.bonus){
+                            char.strength = char.strength - arti.bonus;
+                            char.weapon = artifact.name;
+                            char.strength = char.strength + artifact.bonus;
+                            arti.loc.x = char.loc.x; //dropped it
+                            arti.loc.y = char.loc.y;
+                            artifact.loc.x = 0; //picked it up
+                            artifact.loc.y = 0;
+                            
+                        }
+                        else {pickup=false;}
+                    }
+                }
+                if (pickup == true){
+                    char.weapon = artifact.name;
+                    char.strength = char.strength + artifact.bonus;
+                    artifact.loc.x = 0; //picked it up
+                    artifact.loc.y = 0;
+                }
+                
+            }
+            else{
+                //artifact is clothing
+                if (artifact.type == 'lower'){
+
+                    //check if already have a diff artifact
+                    for (arti of artifacts){
+                        if (char.clothing[0] == arti.name){
+                            if (artifact.bonus > arti.bonus){
+                                char.strength = char.strength - arti.bonus;
+                                char.clothing[0] = artifact.name;
+                                char.strength = char.strength + artifact.bonus;
+                                arti.loc.x = char.loc.x; //dropped it
+                                arti.loc.y = char.loc.y;
+                                artifact.loc.x = 0; //picked it up
+                                artifact.loc.y = 0;
+                            }
+                            else {pickup=false;}
+                        }
+                    }
+                    if (pickup == true){
+                        char.clothing[0] = artifact.name;
+                        char.strength = char.strength + artifact.bonus;
+                        artifact.loc.x = 0; //picked it up
+                        artifact.loc.y = 0;
+                    }
+                }
+                if (artifact.type == 'upper'){
+                    //check if already have a diff artifact
+                    for (arti of artifacts){
+                        if (char.clothing[1] == arti.name){
+                            if (artifact.bonus > arti.bonus){
+                                char.strength = char.strength - arti.bonus;
+                                char.clothing[1] = artifact.name;
+                                char.strength = char.strength + artifact.bonus;
+                                arti.loc.x = char.loc.x; //dropped it
+                                arti.loc.y = char.loc.y;
+                                artifact.loc.x = 0; //picked it up
+                                artifact.loc.y = 0;
+                            }
+                            else {pickup=false;}
+                        }
+                    }
+                    if (pickup == true){
+                        char.clothing[1] = artifact.name;
+                        char.strength = char.strength + artifact.bonus;
+                        artifact.loc.x = 0; //picked it up
+                        artifact.loc.y = 0;
+                    }
+                    
+                }
+                if (artifact.type == 'hat'){
+                    //check if already have a diff artifact
+                    for (arti of artifacts){
+                        if (char.clothing[3] == arti.name){
+                            if (artifact.bonus > arti.bonus){
+                                char.strength = char.strength - arti.bonus;
+                                char.clothing[3] = artifact.name;
+                                char.strength = char.strength + artifact.bonus;
+                                arti.loc.x = char.loc.x; //dropped it
+                                arti.loc.y = char.loc.y;
+                                artifact.loc.x = 0; //picked it up
+                                artifact.loc.y = 0;
+                            }
+                            else {pickup=false;}
+                        }
+                    }
+                    if (pickup == true){
+                        char.clothing[3] = artifact.name;
+                        char.strength = char.strength + artifact.bonus;
+                        artifact.loc.x = 0; //picked it up
+                        artifact.loc.y = 0;
+                    }
+                    
+                }
+                if (artifact.type == 'cape'){
+                    //check if already have a diff artifact
+                    for (arti of artifacts){
+                        if (char.clothing[4] == arti.name){
+                            if (artifact.bonus > arti.bonus){
+                                char.strength = char.strength - arti.bonus;
+                                char.clothing[4] = artifact.name;
+                                char.strength = char.strength + artifact.bonus;
+                                arti.loc.x = char.loc.x; //dropped it
+                                arti.loc.y = char.loc.y;
+                                artifact.loc.x = 0; //picked it up
+                                artifact.loc.y = 0;
+                            }
+                            else {pickup=false;}
+                        }
+                    }
+                    if (pickup == true){
+                        char.clothing[4] = artifact.name;
+                        char.strength = char.strength + artifact.bonus;
+                        artifact.loc.x = 0; //picked it up
+                        artifact.loc.y = 0;
+                    }
+                }
+            }
+        }
+    }
+}
+
+talktoNearby = function(char){
+
+}
+
+getbig8 = function(){
+    let big = [];
+    
+    for (c in characters){
+        big.push(c);
+        sortArr(big);
+        if (big.length>8){big.pop();}
+    }
+    return big;
+}
+
+sortArr = function(arr){
+    for (i = 1; i<arr.length; i++){
+        let j = i;
+        let y = arr[i].strength;
+        while ((j > 0) && (arr[j-1].strength > y)){
+            arr[j] = arr[j-1];
+            j--;
+        }
+        arr[j]=arr[i];
+    }
+}
+
+noticeNearby = function(me){
+    //the point of this is to notice when people nearby have an artifact equipped and add a key memory
+    //same thing for if the person is part of the big 8
+    //same thing for if they are familiar with a person and see them in the same tile
+    //same thing for if they notice a monster in the same tile
+    //same thing for if they see a fight in the same tile
+
+    
+    let nearby = [];
+    for (character of characters){
+        if (character.loc.x == me.loc.x && character.loc.y == me.loc.y){
+            if (character.name != me.name){
+                nearby.push(character);
+            }
+        }
+    }
+    //artifact equipped
+    for (near of nearby){
+        for (artifact of artifacts){
+            //weapon
+            if (near.weapon == artifact.name){
+                if (isFamiliar(me, near.name)){
+                    mem = new Keymemory(day, [me.name, near.name], {x:me.loc.x,y:me.loc.y}, 'I saw '+near.name+' with the '+near.weapon, 'surprised');
+                    me.keyMemories.push(mem);
+                    for (op of char.opinions){
+                        if (op.keyword == artifact.name){
+                            op.familiar == true;
+                            op.affinity = op.affinity + 2;
+                        }
+                    }
+                }
+                else{
+                    mem = new Keymemory(day, [me.name, 'a stranger'], {x:me.loc.x,y:me.loc.y}, 'I saw a stranger with the '+near.weapon, 'surprised');
+                    me.keyMemories.push(mem);
+                    for (op of char.opinions){
+                        if (op.keyword == artifact.name){
+                            op.familiar == true;
+                            op.affinity = op.affinity + 1;
+                        }
+                    }
+                }
+            }
+            //clothing
+            if (containsItem(near.clothing, artifact.name)){
+                if (isFamiliar(me, near.name)){
+                    mem = new Keymemory(day, [me.name, near.name], {x:me.loc.x,y:me.loc.y}, 'I saw '+near.name+' with the '+artifact.name, 'surprised');
+                    me.keyMemories.push(mem);
+                    for (op of char.opinions){
+                        if (op.keyword == artifact.name){
+                            op.familiar == true;
+                            op.affinity = op.affinity + 2;
+                        }
+                    }
+                }
+                else{
+                    mem = new Keymemory(day, [me.name, 'a stranger'], {x:me.loc.x,y:me.loc.y}, 'I saw a stranger with the '+artifact.name, 'surprised');
+                    me.keyMemories.push(mem);
+                    for (op of char.opinions){
+                        if (op.keyword == artifact.name){
+                            op.familiar == true;
+                            op.affinity = op.affinity + 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    //notice big 8
+
+
 }
 
 }

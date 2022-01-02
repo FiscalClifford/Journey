@@ -184,6 +184,14 @@ function containsItem(array, target){
     return false;
   }
 
+function isFamiliar(char, keyword){
+    for (op of char.opinions){
+        if (op.keyword == keyword){
+            return op.familiar;
+        }
+    }
+}
+
 ///////////////////////////////////////////////////////////////////// GLOBALS ////////////////////////////////////////////////////////
 
 var sizeX = 30;
@@ -397,6 +405,8 @@ function chooseClothing(){
     let shirt = getRand(0, upperClothes.length-1);
     clothes.push(color1+' '+lowerClothes[pants]);
     clothes.push(color2+' '+upperClothes[shirt]);
+    clothes.push('nothing');
+    clothes.push('nothing');
     return clothes;
 }
 function chooseMagic(){
@@ -662,21 +672,23 @@ class Person {
 }
 
 function chooseArtifactType(){
-    let roll = getRand(0,2);
-    if (roll==1){return 'weapon';}
-    else{ return 'clothing';}
+    let roll = getRand(0,6);
+    if (roll==1){return 'lower';}
+    else if (roll==2){return 'upper';}
+    else if (roll==3){return 'hat';}
+    else if (roll==4){return 'cape';}
+    else{ return 'weapon';}
 }
 
 function chooseArtifactName(gear){
 
-    if (gear == 'clothing'){
-        let roll = getRand(0,3);
+    if (gear != 'weapon'){
         let allUp = niceUpper.concat(armorUpper);
         let type = 'dildo';
-        if (roll==0){type = niceLower[getRand(0,niceLower.length-1)];}
-        if (roll==1){type = allUp[getRand(0,allUp.length-1)];}
-        if (roll==2){type = headgear[getRand(0,headgear.length-1)];}
-        if (roll==3){type = capes[getRand(0,capes.length-1)];}
+        if (gear == 'lower'){type = niceLower[getRand(0,niceLower.length-1)];}
+        if (gear == 'upper'){type = allUp[getRand(0,allUp.length-1)];}
+        if (gear == 'hat'){type = headgear[getRand(0,headgear.length-1)];}
+        if (gear == 'cape'){type = capes[getRand(0,capes.length-1)];}
 
         let name = artifactNames[0,getRand(0,artifactNames.length-1)];
         artifactNames.splice(name,1);
@@ -1249,7 +1261,7 @@ function seedDungeons(){
 
                 //create artifacts!
                 let artifact = new Artifact(place);
-                artifacts.push(artifact.name);
+                artifacts.push(artifact);
                 keywords.push(artifact.name);
                 q++;
             }
@@ -1618,6 +1630,8 @@ function spawnMercenary(town, age=undefined, empty=[], empty2=[]){
     clothing.push(color1+' '+lowerClothes[pants]);
     clothing.push(armorUpper[armor]);
     clothing.push(color2+' '+headgear[hat]);
+    clothing.push('nothing');
+    clothing.push('nothing');
 
     let weapon = swords[getRand(0, swords.length-1)];;
     let strength = getRand(20,100);
@@ -1651,6 +1665,7 @@ function spawnMerchant(town, age=undefined, empty=[], empty2=[], empty3=[], empt
     clothing.push(color1+' '+niceLower[pants]);
     clothing.push(color2+' '+niceUpper[shirt]);
     clothing.push(color2+' '+merchHats[hat]);
+    clothing.push('nothing');
 
     let money = getRand(200,800);
     let goods = new Goods(getRand(0,100), getRand(0,100), getRand(0,100), getRand(0,100))
@@ -1689,6 +1704,7 @@ function spawnMerchant(town, age=undefined, empty=[], empty2=[], empty3=[], empt
             let hat = getRand(0, headgear.length-1);
             clothing.push(color+' '+headgear[hat]);
         }
+        clothing.push('nothing');
         
 
         let weapon = swords[getRand(0, swords.length-1)];
@@ -1739,6 +1755,7 @@ function spawnAdventurer(town, age=undefined, empty=[], empty2=[]){
             let hat = getRand(0, headgear.length-1);
             clothing.push(color+' '+headgear[hat]);
         }
+        else {clothing.push('nothing');}
         
         let cape = getRand(0, capes.length-1);
         clothing.push(color3+' '+capes[cape]);
@@ -1781,6 +1798,7 @@ function spawnLegend(town, empty=[], empty2=[]){
         let hat = getRand(0, headgear.length-1);
         clothing.push(color+' '+headgear[hat]);
     }
+    else{clothing.push('nothing');}
     
     let cape = getRand(0, capes.length-1);
     clothing.push(color3+' '+capes[cape]);
@@ -1874,6 +1892,8 @@ function spawnBandit(x,y, empty = [], empty2=[]){
     let shirt = getRand(0, upperClothes.length-1);
     clothing.push(color1+' '+lowerClothes[pants]);
     clothing.push(color2+' '+upperClothes[shirt]);
+    clothing.push('nothing');
+    clothing.push('nothing');
     
 
     let weapon = swords[getRand(0, swords.length-1)];;
