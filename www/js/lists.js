@@ -241,7 +241,11 @@ var titles = ['The Nightingale', 'The Majestic', 'The Brave', 'The Swift', 'The 
 'The Avenger',  'The Vanquisher', 'The Bloodstained', 'The Starkindler', 'The Adjuticator', 'The Legendary', 'The Northstrider', 'The Bladmaster', 'The Golden Reverend', 
 'The Eastern Seer', 'The Western Force', 'The Will of the South', 'The Sage of the Desert', 'The Shrouded Shaman', 'Emperor of Ash', 'Skullbreaker', 'The Blessed Captain', 'The Virtuous', 'Dreamcatcher'];
 
-var landmarkNames = ['Castle of Doom', 'Hall of Souls', "Spire of Reckoning", 'Pit of Dispair', 'Citadel of Madness', 'Tower of Steel', 'Caves of the prophet', 'Jungle of despair', 'The Abyss'];
+var dungeonNames = ['Castle of Doom', 'Hall of Souls', "Spire of Reckoning", 'Pit of Dispair', 'Citadel of Madness', 'Tower of Steel', 'Caves of the prophet', 'Jungle of despair', 'The Abyss',
+'Chamber of the Lost Wanderer', 'Labyrinth of the Lost', 'Orsteds Abandoned Throne', 'Vault of Wonders', 'The Grim Grotto', 'The Cliffs of Ire', 'Kingslayer Keep', 'The Jagged Ruins',
+'Catacombs of the Fallen', 'Defunct World Portal', 'The Beacon of Infinite Light', 'Ruins of a Lost City', 'Stonehenge', 'Garden of Statues', 'The Black Lair', 'The Crypt of shadows', 'The Twilight Caverns',
+'The Black Tower', 'The Silver Spire', 'The Ivory Tower', 'The Sinister Spire', 'The Haunted Garden', 'The Realm of Regrets', 'The Mysterious Maze', 'The Foggy Moore', 'The Wailing Castle', 'The Haunted Battlefield',
+'The Abandoned Mine', 'The Forest of Fallen Giants', 'Fortress of the Sun', 'Fortress of the Moon', 'Spire of the Eclipse'];
 
 var eyeColors = ['light blue', 'blue', 'dark blue', 'gray', 'stormy blue', 'blue-gray', 'green', 'hazel', 'amber', 'light brown', 'brown', 'dark brown', 'chestnut',
 'brown','brown','brown','brown','brown','light-brown','light-brown'];
@@ -277,6 +281,13 @@ var emotions = ['saddened', 'disgusted', 'surprised', 'angered', 'delighted', 's
 
 var swords = ['longsword', 'flyssa', 'sabre', 'scimitar', 'katana', 'golok', 'falx', 'gladius', 'falchion', 'claymore', 'rapier', 'zweihander', 'longsword', 'longsword', 'longsword', 'longsword']
 
+var monsterMinor = ['Goblin', 'Kobold', 'Giant Spider','Starving Bear'];
+
+var monsterMiddle = ['Animated Skeleton', 'Minotaur', 'Orc', 'Great Wolf'];
+
+var monsterSuperior = ['Eldritch Horror', 'Dragon', 'Titan', 'Hydra'];
+
+var monstertypes = monsterMinor.concat(monsterMiddle).concat(monsterSuperior);
 
 // list of actions i've used so far:
 // rest between trips

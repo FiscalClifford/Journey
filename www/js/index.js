@@ -160,7 +160,7 @@ function dispGrid(){
     for (i=0;i<sizeX;i++){
         arr = '';
         for (j=0;j<sizeY;j++){
-            if (grid[i][j].landmark == true){arr = arr+' @ ';}
+            if (grid[i][j].Dungeon == true){arr = arr+' @ ';}
             else if (grid[i][j].town == true){arr = arr+' X ';}
             else if (grid[i][j].road == true){arr = arr+' # ';}
             else if (grid[i][j].water == true){arr = arr+' W ';}
@@ -175,25 +175,36 @@ function dispGrid(){
     }
 }
 
+function containsItem(array, target){
+    for(let i = 0; i < array.length; i++){
+      if(array[i] === target){
+        return true;
+      }
+    }
+    return false;
+  }
+
 ///////////////////////////////////////////////////////////////////// GLOBALS ////////////////////////////////////////////////////////
 
 var sizeX = 30;
 var sizeY = 30;
 var townTotal = 6;
-var landmarkTotal = 8;
+var DungeonTotal = 8;
 var passes = 2;
 var grid = createGrid(sizeX);
 
 var towns = [];
-var landmarks = [];
+var Dungeons = [];
 var keywords = [];
 var characters = [];
 var merchants = [];
 var adventurers = [];
 var commoners = [];
 var mercenaries = [];
-var legends = []; //big 8
+var legends = [];
+var monsters = [];
 var day = 1000;
+var kiloyear = 100;
 var player;
 var orsted;
 
@@ -220,7 +231,7 @@ class Tile {
         this.tundra = false,
         this.ruins = false,
         this.desert = false,
-        this.landmark = false,
+        this.Dungeon = false,
         this.trees = 'sparse', // none, sparse, moderate, forest
         this.rocks = 'sparse', // none, sparse, moderate, rocky
         this.wildlife = 'sparse', // none, sparse, moderate, flourishing
@@ -279,23 +290,23 @@ class Tile {
     }
 };
 
-//Landmark Functions      ----------------------------------------------------------------
-function chooseLandmarkName(){
-    let mark = getRand(0, landmarkNames.length-1);
-    return landmarkNames.splice(mark,1).toString();
+//Dungeon Functions      ----------------------------------------------------------------
+function chooseDungeonName(){
+    let mark = getRand(0, dungeonNames.length-1);
+    return dungeonNames.splice(mark,1).toString();
 }
-function chooseLandmarkPlace(){
+function chooseDungeonPlace(){
     let spot = new Loc();
     spot.x = getRand(1, sizeX-1);
     spot.y = getRand(1, sizeY-1);
     return spot;
 }
-function chooseLandDesc(){
+function chooseDungDesc(){
     return 'A very spooky place';
 }
 
-class Landmark{
-    constructor(name=chooseLandmarkName(), loc=chooseLandmarkPlace(), description=chooseLandDesc()){
+class Dungeon{
+    constructor(name=chooseDungeonName(), loc=chooseDungeonPlace(), description=chooseDungDesc()){
         this.name = name,
         this.loc = loc,
         this.description = description
@@ -368,7 +379,6 @@ function chooseHometown(loc){
     let homeTown = towns[getRand(0, towns.length-1)];
     return homeTown;
 }
-
 function chooseGoals(homeName){
     let goals = [];
     let g = new Goal(homeName, 'live peacefully');
@@ -414,19 +424,175 @@ class Person {
         this.goods = goods,
         this.magic = magic,
         this.relations = relations,
+        this.party = party 
+    }
+}
+
+function chooseMonsterStrength(name){
+    if (containsItem(monsterMinor, name)){
+        return getRand(10, 80);
+    }
+    if (containsItem(monsterMiddle, name)){
+        return getRand(100, 180);
+    }
+    if (containsItem(monsterSuperior, name)){
+        return getRand(200, 350);
+    }
+    return getRand(10,300);
+}
+function chooseMonsterClothing(name){
+    if (name == 'Goblin'){
+        return ['leather wrappings','wooden clogs'];
+    }
+    if (name == 'Kobold'){
+        return ['leather loincloth', 'skull helmet'];
+    }
+    if (name == 'Giant Spider'){
+        return ['exoskeleton', 'spiny limbs'];
+    }
+    if (name == 'Starving Bear'){
+        return ['tough fur', 'stubby tail'];
+    }
+    if (name == 'Animated Skeleton'){
+        let clothing = [];
+        let color1 = mutedColors[getRand(0, mutedColors.length-1)];
+        let color2 = mutedColors[getRand(0, mutedColors.length-1)];
+        let pants = getRand(0, lowerClothes.length-1);
+        let armor = getRand(0, armorUpper.length-1);
+        let hat = getRand(0, headgear.length-1);
+        clothing.push(color1+' '+lowerClothes[pants]);
+        clothing.push(armorUpper[armor]);
+        clothing.push(color2+' '+headgear[hat]);
+        return clothing;
+    }
+    if (name == 'Minotaur'){
+        let armorRoll = getRand(0,1);
+        if (armorRoll == 1){
+            let color1 = mutedColors[getRand(0, mutedColors.length-1)];
+            let armor = getRand(0, armorUpper.length-1);
+            return ['leather loincloth', color1+' '+armorUpper[armor]]
+        }else{
+            return ['leather loincloth'];
+        }
+    }
+    if (name == 'Orc'){
+        let clothing = [];
+        let color1 = mutedColors[getRand(0, mutedColors.length-1)];
+        let color2 = mutedColors[getRand(0, mutedColors.length-1)];
+        let color3 = colors[getRand(0, colors.length-1)];
+        let pants = getRand(0, lowerClothes.length-1);
+        let armor = getRand(0, armorUpper.length-1);
+        let hat = getRand(0, headgear.length-1);
+        clothing.push(color1+' '+lowerClothes[pants]);
+        clothing.push(armorUpper[armor]);
+        clothing.push(color2+' '+headgear[hat]);
+        let cape = getRand(0, capes.length-1);
+        clothing.push(color3+' '+capes[cape]);
+        return clothing;
+    }
+    if (name == 'Great Wolf'){
+        return ['tough fur'];
+    }
+    if (name == 'Eldritch Horror'){
+        return ['primordial ooze', 'cloak of shadows'];
+    }
+    if (name == 'Dragon'){
+        return ['sturdy scales', 'portruding spines', 'left wing', 'right wing'];
+    }
+    if (name == 'Titan'){
+        let clothing = [];
+        let color1 = colors[getRand(0, colors.length-1)];
+        let color2 = colors[getRand(0, colors.length-1)];
+        let pants = getRand(0, lowerClothes.length-1);
+        let armor = getRand(0, armorUpper.length-1);
+        let hat = getRand(0, headgear.length-1);
+        clothing.push(color1+' '+lowerClothes[pants]);
+        clothing.push(armorUpper[armor]);
+        clothing.push(color2+' '+headgear[hat]);
+        return clothing;
+    }
+    if (name == 'Hydra'){
+        return ['sturdy scales', 'portruding spines', 'several heads', 'swinging tail'];
+    }
+    return ['big silly hat'];
+}
+function chooseMonsterWeapon(name){
+    if (name == 'Goblin'){
+        return 'knife';
+    }
+    if (name == 'Kobold'){
+        return 'wooden spear';
+    }
+    if (name == 'Giant Spider'){
+        return 'sharp mandibles';
+    }
+    if (name == 'Starving Bear'){
+        return 'sharp claws';
+    }
+    if (name == 'Animated Skeleton'){
+        return swords[getRand(0, swords.length-1)];
+    }
+    if (name == 'Minotaur'){
+        return swords[getRand(0, swords.length-1)];
+    }
+    if (name == 'Orc'){
+        return swords[getRand(0, swords.length-1)];
+    }
+    if (name == 'Great Wolf'){
+        return 'sharp claws';
+    }
+    if (name == 'Eldritch Horror'){
+        return 'razor sharp scythe';
+    }
+    if (name == 'Dragon'){
+        return 'enormous fangs';
+    }
+    if (name == 'Titan'){
+        return 'massive '+swords[getRand(0, swords.length-1)];
+    }
+    if (name == 'Hydra'){
+        return 'enormous fangs';
+    }
+    return 'giant dildo';
+}
+function chooseMonsterDescription(name){
+    let size;
+    let sizes1 = ['small', 'little', 'puny', 'short', 'weak'];
+    let sizes2 = ['small', 'intimidating', 'big', 'large', 'huge', 'massive', 'imposing', 'strong'];
+    let sizes3 = [ 'large', 'huge', 'massive', 'colossal', 'enormous', 'gigantic', 'powerful'];
+    let color = colors[getRand(0, colors.length-1)];
+    let emotions = ['pissed off', 'angry', 'annoyed', 'furious', 'enraged', 'hungry', 'evil', 'nefarious', 'insidious', 'predatory'];
+    if (containsItem(monsterMinor, name)){size = sizes1;}
+    if (containsItem(monsterMiddle, name)){size = sizes2;}
+    if (containsItem(monsterSuperior, name)){size = sizes3;}
+    let emotion = emotions[getRand(0, emotions.length-1)]
+    let sizer = size[getRand(0, size.length-1)];
+
+    return 'The monster type is '+color+' '+name+'. It is '+sizer+' and looks '+emotion+'.';
+}
+
+class Monster {
+    constructor(name, loc, strength=chooseMonsterStrength(name), clothing=chooseMonsterClothing(name), weapon=chooseMonsterWeapon(name), description=chooseMonsterDescription(name), party=[name]){
+        //I'm gonna keep the constructors this way so that if i wanted to make custom monsters later I can.
+        this.name = name,
+        this.loc = loc,
+        this.strength = strength,
+        this.clothing = clothing,
+        this.weapon = weapon,
+        this.description = description,
         this.party = party
-        
     }
 }
 
 //Goods                      ----------------------------------------------------------------
 
 class Goods{
-    constructor(wood=0, iron=0, leather=0, food=getRand(1,5)){
+    constructor(wood=0, iron=0, leather=0, food=getRand(1,5), inventory=[]){
         this.wood = wood,
         this.iron = iron,
         this.leather = leather,
-        this.food = food
+        this.food = food,
+        this.inventory = inventory
     }
 }
 
@@ -475,9 +641,10 @@ class Goal{
 
 //A Key Memory is something that happened in the past that left an impression on the character. Examples: 
 //Fighting or being attacked
-//visiting a town or landmarks
+//visiting a town or Dungeons
 //meeting a big 8 character or ruler
 //finding an artifact
+//someone they liked and was familiar with died
 
 function chooseMemPlace(){
     place = new Loc();
@@ -502,7 +669,6 @@ class KeyMemory{
         this.emotion = emotion
     }
 }
-
 
 //////////////////////////////////////////////////////////////////////// STARTUP ////////////////////////////////////////////////////////////
 
@@ -739,7 +905,7 @@ function seedTowns(){
                 }
             }
             if (tooclose == false){
-                console.log("town created at: "+ roll1 + " , " + roll2);
+                //console.log("town created at: "+ roll1 + " , " + roll2);
                 grid[roll1][roll2].town = true;
                 let place = new Loc();
                 place.x = roll1;
@@ -758,7 +924,7 @@ function seedTowns(){
     }
 }
 
-function seedLandmarks(){
+function seedDungeons(){
  
     var dist = (((sizeX + sizeY)/2)/10);
     if (dist <2){dist = 2;}
@@ -766,7 +932,7 @@ function seedLandmarks(){
     var q = 0; 
     var counter = 0;
    
-    while(q<landmarkTotal){
+    while(q<DungeonTotal){
         var roll1 = getRand(1,(sizeX-2));
         var roll2 = getRand(1,(sizeY-2));
         //console.log("checking: "+roll1+","+roll2);
@@ -780,20 +946,20 @@ function seedLandmarks(){
                         //console.log("out of bounds");
                         continue;
                     }
-                    if (grid[i][j].landmark == true){
+                    if (grid[i][j].Dungeon == true){
                         tooclose = true;
                         //console.log("too close!");
                     }
                 }
             }
             if (tooclose == false){
-                console.log("landmark created at: "+ roll1 + " , " + roll2);
-                grid[roll1][roll2].landmark = true;
+                //console.log("Dungeon created at: "+ roll1 + " , " + roll2);
+                grid[roll1][roll2].Dungeon = true;
                 let place = new Loc();
                 place.x = roll1;
                 place.y = roll2;
-                let mark = new Landmark(undefined, place, undefined);
-                landmarks.push(mark);
+                let mark = new Dungeon(undefined, place, undefined);
+                Dungeons.push(mark);
                 keywords.push(mark.name);
                 q++;
             }
@@ -801,7 +967,7 @@ function seedLandmarks(){
         counter ++;
         //if impossible to make more towns
         if (counter > (sizeX*sizeY)){
-            q = (landmarkTotal + 1);
+            q = (DungeonTotal + 1);
         }
     }
 }
@@ -1123,73 +1289,227 @@ function seedOpinions(){
     }        
 }
 
-function seedMemories(){
+function spawnCommoner(town, age=undefined){
+    let character = new Person(town.loc, undefined, undefined, age, undefined, undefined, undefined, town);
+    characters.push(character);
+    keywords.push(character.name);
+    commoners.push(character.name);
+}
+
+function spawnMercenary(town, age=undefined){
+    let goal = new Goal(town.name, 'wait for mercenary work');
+    let goals = [];
+    goals.push(goal);
+
+    let clothing = [];
+    let color1 = mutedColors[getRand(0, mutedColors.length-1)];
+    let color2 = mutedColors[getRand(0, mutedColors.length-1)];
+    let pants = getRand(0, lowerClothes.length-1);
+    let armor = getRand(0, armorUpper.length-1);
+    let hat = getRand(0, headgear.length-1);
+    clothing.push(color1+' '+lowerClothes[pants]);
+    clothing.push(armorUpper[armor]);
+    clothing.push(color2+' '+headgear[hat]);
+
+    let weapon = swords[getRand(0, swords.length-1)];;
+    let strength = getRand(20,100);
+    let money = getRand(50,200);
+
+    let character = new Person(town.loc, undefined, undefined, age, undefined, undefined, undefined, town, undefined, goals, undefined, clothing, weapon, strength, money);
+    characters.push(character);
+    keywords.push(character.name);
+    town.mercs.push(character.name);
+    mercenaries.push(character.name);
+}
+
+function spawnMerchant(town, age=undefined){
+    let goals = [];
+    let target = towns[getRand(0,towns.length-1)];
+    let goal = new Goal(town.name, 'rest between trips');
+    goals.push(goal);
+    goal = new Goal(target.name, 'travel to '+target.name);
+    goals.push(goal);
+    goal = new Goal(target.name, 'rest between trips');
+    goals.push(goal);
+
+    let clothing = [];
+    let color1 = colors[getRand(0, colors.length-1)];
+    let color2 = colors[getRand(0, colors.length-1)];
+    let pants = getRand(0, niceLower.length-1);
+    let shirt = getRand(0, niceUpper.length-1);
+    let hat = getRand(0, merchHats.length-1);
+    clothing.push(color1+' '+niceLower[pants]);
+    clothing.push(color2+' '+niceUpper[shirt]);
+    clothing.push(color2+' '+merchHats[hat]);
+
+    let money = getRand(200,800);
+    let goods = new Goods(getRand(0,100), getRand(0,100), getRand(0,100), getRand(0,100))
+    let character = new Person(town.loc, undefined, undefined, age, undefined, undefined, undefined, town, undefined, goals, undefined, clothing, undefined, undefined, money, goods);
     
-    characters = shuffle(characters);
-    for (person of characters){
-        let common, merc, merch, advent, leg = false;
-        for (commoner of commoners){
-            if (person.name == commoner){common = true;}
-            else{ for (mercenary of mercenaries){
-                if (person.name == mercenary){merc = true;}
-                else{ for (merchant of merchants){
-                    if (person.name == merchant){merch = true;}
-                    else{ for (adventurer of adventurers){
-                        if (person.name == adventurer){advent = true;}
-                        else{ for (legend of legends){
-                            if (person.name == legend){leg = true;}
-                        }}}}}}}}}
 
-        //KeyMemory (time, people[], loc, takeaway, emotion)
+    //bodyguards
+    let bodynum = getRand(1,2);
+    for (j=0; j<bodynum; j++){
 
-        //Fighting or being attacked. Seeing a fight take place.
-        //visiting a town or landmarks
-        //meeting a big 8 character or ruler
-        //finding an artifact
+        let goals = [];
+        let goal = new Goal(character.name, 'help '+character.name);
+        goals.push(goal);
+        goal = new Goal(town.name, 'travel to '+town.name);
+        goals.push(goal);
+        goal = new Goal(town.name, 'wait for mercenary work');
+        goals.push(goal);
         
-        //memories for Commoners
-        if (common == true){
-        //visiting a town
-        //meeting a big 8 character or ruler
-            var mem = new KeyMemory(undefined, undefined, undefined, undefined, undefined);
-            person.keyMemories.push(mem);
+
+        let clothing = [];
+        let color1 = colors[getRand(0, colors.length-1)];
+        
+        let pants = getRand(0, niceLower.length-1);
+        let armor = getRand(0, armorUpper.length-1);
+        clothing.push(color1+' '+niceLower[pants]);
+        clothing.push(armorUpper[armor]);
+
+        if (1 == getRand(1,2)){
+            let color = colors[getRand(0, colors.length-1)];
+            let hat = getRand(0, merchHats.length-1);
+            clothing.push(color+' '+merchHats[hat]);
         }
-        //memories for mercenaries
-        if (merc == true){
-            //Fighting or being attacked. Seeing a fight take place.
-        //visiting a town
-        //meeting a big 8 character or ruler
-            var mem = new KeyMemory(undefined, undefined, undefined, undefined, undefined);
-            person.keyMemories.push(mem);
-        }
-        //memories for merchants
-        if (merch == true){
-            //Fighting or being attacked. Seeing a fight take place.
-        //visiting a town 
-        //meeting a big 8 character or ruler
-            var mem = new KeyMemory(undefined, undefined, undefined, undefined, undefined);
-            person.keyMemories.push(mem);
-        }
-        //memories for adventurers
-        if (advent == true){
-            //Fighting or being attacked. Seeing a fight take place.
-        //visiting a town or landmarks
-        //meeting a big 8 character or ruler
-        //finding an artifact
-            var mem = new KeyMemory(undefined, undefined, undefined, undefined, undefined);
-            person.keyMemories.push(mem);
-        }
-        //memories for legends
-        if (leg == true){
-            //Fighting or being attacked. Seeing a fight take place.
-        //visiting a town or landmarks
-        //meeting a big 8 character or ruler
-        //finding an artifact
-            var mem = new KeyMemory(undefined, undefined, undefined, undefined, undefined);
-            person.keyMemories.push(mem);
+        else{
+            let color = mutedColors[getRand(0, mutedColors.length-1)];
+            let hat = getRand(0, headgear.length-1);
+            clothing.push(color+' '+headgear[hat]);
         }
         
+
+        let weapon = swords[getRand(0, swords.length-1)];
+        let strength = getRand(60,160);
+        let money = getRand(100,200);
+        let guard = new Person(town.loc, undefined, undefined, undefined, undefined, undefined, undefined, town, undefined, goals, undefined, clothing, weapon, strength, money);
+        
+        let a = new Relation(guard.name, 'bodyguard');
+        let b = new Relation(character.name, 'employer');
+        guard.relations.push(b);
+        character.relations.push(a);
+
+        characters.push(guard);
+        keywords.push(guard.name);
+        mercenaries.push(guard.name);
     }
+    characters.push(character);
+    keywords.push(character.name);
+    merchants.push(character.name);
+}
+
+function spawnAdventurer(town, age=undefined){
+    let goals = [];
+    let goal = new Goal(town.name, 'rest between trips');
+    goals.push(goal);
+    let target = Dungeons[getRand(0,Dungeons.length-1)];
+    goal = new Goal(target.name, 'travel to '+target.name);
+    goals.push(goal);
+    goal = new Goal(target.name, 'rest between trips');
+    goals.push(goal);
+    
+    let clothing = [];
+        let color1 = colors[getRand(0, colors.length-1)];
+        let color2 = colors[getRand(0, colors.length-1)];
+        let color3 = colors[getRand(0, colors.length-1)]
+        let pants = getRand(0, niceLower.length-1);
+        let armor = getRand(0, armorUpper.length-1);
+        clothing.push(color1+' '+niceLower[pants]);
+        clothing.push(color2+' '+armorUpper[armor]);
+
+        if (1 == getRand(1,2)){
+            let color = colors[getRand(0, colors.length-1)];
+            let hat = getRand(0, headgear.length-1);
+            clothing.push(color+' '+headgear[hat]);
+        }
+        
+        let cape = getRand(0, capes.length-1);
+        clothing.push(color3+' '+capes[cape]);
+
+    let weapon = swords[getRand(0, swords.length-1)];
+    let strength = getRand(120,240);
+    let money = getRand(200,350);
+    let magic = false;
+    if (1 == getRand(0,1)){magic = true;}
+    
+
+    let character = new Person(town.loc, undefined, undefined, age, undefined, undefined, undefined, town, undefined, goals, undefined, clothing, weapon, strength, money, undefined, magic);
+    characters.push(character);
+    keywords.push(character.name);
+    adventurers.push(character.name);
+}
+
+function spawnLegend(town){
+    let goals = [];
+    let goal = new Goal(town.name, 'rest between trips');
+    goals.push(goal);
+    let target = Dungeons[getRand(0,Dungeons.length-1)];
+    goal = new Goal(target.name, 'travel to '+target.name);
+    goals.push(goal);
+    goal = new Goal(target.name, 'rest between trips');
+    goals.push(goal);
+    
+
+    let clothing = [];
+    let color1 = colors[getRand(0, colors.length-1)];
+    let color2 = colors[getRand(0, colors.length-1)];
+    let color3 = colors[getRand(0, colors.length-1)]
+    let pants = getRand(0, niceLower.length-1);
+    let armor = getRand(0, armorUpper.length-1);
+    clothing.push(color1+' '+niceLower[pants]);
+    clothing.push(color2+' '+armorUpper[armor]);
+
+    if (1 == getRand(1,2)){
+        let color = colors[getRand(0, colors.length-1)];
+        let hat = getRand(0, headgear.length-1);
+        clothing.push(color+' '+headgear[hat]);
+    }
+    
+    let cape = getRand(0, capes.length-1);
+    clothing.push(color3+' '+capes[cape]);
+
+    let weapon = swords[getRand(0, swords.length-1)];
+    let strength = getRand(300,400);
+    let money = getRand(700,1000);
+    let magic = false;
+    if (1 == getRand(0,1)){magic = true;}
+    
+    let gender = 'male';
+    if (getRand(0, 1) == 1) {gender = 'male';}
+    else {gender = 'female';}
+
+    let name = '---'
+    if (gender == 'male'){
+        name = getRand(0, maleNames.length-1);
+        name = maleNames.splice(name,1).toString();
+    }
+    else {
+        name = getRand(0, femaleNames.length-1);
+        name = femaleNames.splice(name,1).toString();
+    }
+
+    let color = getRand(0, colors.length-1);
+    let eyecolor = colors[color];
+    let haircolor = eyecolor;
+
+    if ( 1 == getRand(0,1)){
+        name = name+', '+titles.splice(getRand(0,titles.length-1),1).toString();
+    }
+    else{
+        let fulltitles = ['The Hero of '+towns[getRand(0,towns.length-1)].name, 'The Savior of '+towns[getRand(0,towns.length-1)].name, 'The Legend of '+town.name, 
+        'The Bane of '+towns[getRand(0,towns.length-1)].name,
+        'Warden of '+Dungeons[getRand(0,Dungeons.length-1)].name, 'Tyrant of '+Dungeons[getRand(0,Dungeons.length-1)].name, 'Keeper of '+Dungeons[getRand(0,Dungeons.length-1)].name, 
+        'Deacon of '+Dungeons[getRand(0,Dungeons.length-1)].name,  'The '+haircolor+' Pheonix', 'The '+haircolor+' Fox', 'The '+haircolor+' Hawk', 'The '+haircolor+' Lion', 'The '+haircolor+' Shark', 
+        'The '+haircolor+' Eagle', 'The '+haircolor+' Bear', 'The '+haircolor+' Snake', 'The '+haircolor+' Menace', 'The '+haircolor+' Hero', 'The '+eyecolor+' eyed Master'];
+
+        name = name+', '+fulltitles.splice(getRand(0,fulltitles.length-1),1).toString();
+        }
+
+    let character = new Person(town.loc, gender, name, undefined, undefined, haircolor, eyecolor, town, undefined, goals, undefined, clothing, weapon, strength, money, undefined, magic);
+    characters.push(character);
+    keywords.push(character.name);
+    legends.push(character.name);
 }
 
 function seedCharacters(){
@@ -1202,7 +1522,7 @@ function seedCharacters(){
     //6. add Orsted
 
     let commonies = 20;
-    let mercies = 8;
+    let mercies = 6;
     let merchies = 5;
     let adventies = 4;
 
@@ -1210,11 +1530,12 @@ function seedCharacters(){
     //I'll come back and put in the special birth stuff later
     createPlayer = function(){
         let birthplace = towns[getRand(0,towns.length-1)]
-        let mark =landmarks[getRand(0,landmarks.length-1)]
+        let mark =Dungeons[getRand(0,Dungeons.length-1)]
         let goal = new Goal(mark.name, 'Have an Adventure! Explore '+mark.name);
         let goals = [];
         goals.push(goal);
-        player = new Person(birthplace.loc,undefined,undefined,undefined,undefined,undefined,undefined,birthplace,undefined, goals);
+        age = getRand(18,30);
+        player = new Person(birthplace.loc,undefined,undefined,age,undefined,undefined,undefined,birthplace,undefined, goals);
         characters.push(player);
         keywords.push(player.name);
     }
@@ -1224,10 +1545,7 @@ function seedCharacters(){
     createCommoners = function(){
         for (town of towns){
             for (i=0; i<commonies;i++){
-                let character = new Person(town.loc, undefined, undefined, undefined, undefined, undefined, undefined, town);
-                characters.push(character);
-                keywords.push(character.name);
-                commoners.push(character.name);
+                spawnCommoner(town);
             } 
         }
     }
@@ -1236,32 +1554,7 @@ function seedCharacters(){
     createMercenaries = function(){
         for (town of towns){
             for (i=0; i<mercies;i++){
-
-                let goal = new Goal(town.name, 'wait for mercenary work');
-                let goals = [];
-                goals.push(goal);
-
-                let clothing = [];
-                let color1 = mutedColors[getRand(0, mutedColors.length-1)];
-                let color2 = mutedColors[getRand(0, mutedColors.length-1)];
-                let pants = getRand(0, lowerClothes.length-1);
-                let armor = getRand(0, armorUpper.length-1);
-                let hat = getRand(0, headgear.length-1);
-                clothing.push(color1+' '+lowerClothes[pants]);
-                clothing.push(armorUpper[armor]);
-                clothing.push(color2+' '+headgear[hat]);
-
-                let weapon = swords[getRand(0, swords.length-1)];;
-                
-                let strength = getRand(20,50);
-
-                let money = getRand(50,200);
-
-                let character = new Person(town.loc, undefined, undefined, undefined, undefined, undefined, undefined, town, undefined, goals, undefined, clothing, weapon, strength, money);
-                characters.push(character);
-                keywords.push(character.name);
-                town.mercs.push(character.name);
-                mercenaries.push(character.name);
+                spawnMercenary(town);
             }
         }
     }
@@ -1271,224 +1564,40 @@ function seedCharacters(){
     createMerchants = function(){
         for (town of towns){
             for (i=0; i<merchies;i++){
-
-                let goals = [];
-                let target = towns[getRand(0,towns.length-1)];
-                let goal = new Goal(town.name, 'rest between trips');
-                goals.push(goal);
-                goal = new Goal(target.name, 'travel to '+target.name);
-                goals.push(goal);
-                goal = new Goal(target.name, 'rest between trips');
-                goals.push(goal);
-
-                let clothing = [];
-                let color1 = colors[getRand(0, colors.length-1)];
-                let color2 = colors[getRand(0, colors.length-1)];
-                let pants = getRand(0, niceLower.length-1);
-                let shirt = getRand(0, niceUpper.length-1);
-                let hat = getRand(0, merchHats.length-1);
-                clothing.push(color1+' '+niceLower[pants]);
-                clothing.push(color2+' '+niceUpper[shirt]);
-                clothing.push(color2+' '+merchHats[hat]);
-
-                let money = getRand(200,800);
-
-                let goods = new Goods(getRand(0,100), getRand(0,100), getRand(0,100), getRand(0,100))
-
-                let character = new Person(town.loc, undefined, undefined, undefined, undefined, undefined, undefined, town, undefined, goals, undefined, clothing, undefined, undefined, money, goods);
-                
-
-                //bodyguards
-                let bodynum = getRand(1,2);
-                for (j=0; j<bodynum; j++){
-
-                    let goals = [];
-                    let goal = new Goal(character.name, 'protect '+character.name);
-                    goals.push(goal);
-                    goal = new Goal(town.name, 'travel to '+town.name);
-                    goals.push(goal);
-                    goal = new Goal(town.name, 'wait for mercenary work');
-                    goals.push(goal);
-                    
-
-                    let clothing = [];
-                    let color1 = colors[getRand(0, colors.length-1)];
-                    
-                    let pants = getRand(0, niceLower.length-1);
-                    let armor = getRand(0, armorUpper.length-1);
-                    clothing.push(color1+' '+niceLower[pants]);
-                    clothing.push(armorUpper[armor]);
-
-                    if (1 == getRand(1,2)){
-                        let color = colors[getRand(0, colors.length-1)];
-                        let hat = getRand(0, merchHats.length-1);
-                        clothing.push(color+' '+merchHats[hat]);
-                    }
-                    else{
-                        let color = mutedColors[getRand(0, mutedColors.length-1)];
-                        let hat = getRand(0, headgear.length-1);
-                        clothing.push(color+' '+headgear[hat]);
-                    }
-                    
-
-                    let weapon = swords[getRand(0, swords.length-1)];
-                    let strength = getRand(40,70);
-                    let money = getRand(100,200);
-                    let guard = new Person(town.loc, undefined, undefined, undefined, undefined, undefined, undefined, town, undefined, goals, undefined, clothing, weapon, strength, money);
-                    
-                    let a = new Relation(guard.name, 'bodyguard');
-                    let b = new Relation(character.name, 'employer');
-                    guard.relations.push(b);
-                    character.relations.push(a);
-
-                    characters.push(guard);
-                    keywords.push(guard.name);
-                    mercenaries.push(guard.name);
-                }
-                characters.push(character);
-                keywords.push(character.name);
-                merchants.push(character.name);
+                spawnMerchant(town);
             }
         }
     }
 
     //adventurers
-    //travel between landmarks, occasionally rest at a town
+    //travel between Dungeons, occasionally rest at a town
     createAdventurers = function(){
         for (town of towns){
             for (i=0; i<adventies;i++){
-
-                let goals = [];
-                let goal = new Goal(town.name, 'rest between trips');
-                goals.push(goal);
-                let target = landmarks[getRand(0,landmarks.length-1)];
-                goal = new Goal(target.name, 'travel to '+target.name);
-                goals.push(goal);
-                goal = new Goal(target.name, 'rest between trips');
-                goals.push(goal);
-                
-
-                let clothing = [];
-                    let color1 = colors[getRand(0, colors.length-1)];
-                    let color2 = colors[getRand(0, colors.length-1)];
-                    let color3 = colors[getRand(0, colors.length-1)]
-                    let pants = getRand(0, niceLower.length-1);
-                    let armor = getRand(0, armorUpper.length-1);
-                    clothing.push(color1+' '+niceLower[pants]);
-                    clothing.push(color2+' '+armorUpper[armor]);
-
-                    if (1 == getRand(1,2)){
-                        let color = colors[getRand(0, colors.length-1)];
-                        let hat = getRand(0, headgear.length-1);
-                        clothing.push(color+' '+headgear[hat]);
-                    }
-                    
-                    let cape = getRand(0, capes.length-1);
-                    clothing.push(color3+' '+capes[cape]);
-
-                let weapon = swords[getRand(0, swords.length-1)];
-                let strength = getRand(70,199);
-                let money = getRand(200,400);
-                let magic = false;
-                if (1 == getRand(0,1)){magic = true;}
-                
-
-                let character = new Person(town.loc, undefined, undefined, undefined, undefined, undefined, undefined, town, undefined, goals, undefined, clothing, weapon, strength, money, undefined, magic);
-                characters.push(character);
-                keywords.push(character.name);
-                adventurers.push(character.name);
+                spawnAdventurer(town);
             }
         }
     }
 
     //Legends (the best of these will become the big 8)
-    //travel between landmarks, occasionally rest at a town
+    //travel between Dungeons, occasionally rest at a town
     createLegends = function(){
         for (town of towns){
             for (i=0; i<2;i++){
-
-                let goals = [];
-                let goal = new Goal(town.name, 'rest between trips');
-                goals.push(goal);
-                let target = landmarks[getRand(0,landmarks.length-1)];
-                goal = new Goal(target.name, 'travel to '+target.name);
-                goals.push(goal);
-                goal = new Goal(target.name, 'rest between trips');
-                goals.push(goal);
-                
-
-                let clothing = [];
-                let color1 = colors[getRand(0, colors.length-1)];
-                let color2 = colors[getRand(0, colors.length-1)];
-                let color3 = colors[getRand(0, colors.length-1)]
-                let pants = getRand(0, niceLower.length-1);
-                let armor = getRand(0, armorUpper.length-1);
-                clothing.push(color1+' '+niceLower[pants]);
-                clothing.push(color2+' '+armorUpper[armor]);
-
-                if (1 == getRand(1,2)){
-                    let color = colors[getRand(0, colors.length-1)];
-                    let hat = getRand(0, headgear.length-1);
-                    clothing.push(color+' '+headgear[hat]);
-                }
-                
-                let cape = getRand(0, capes.length-1);
-                clothing.push(color3+' '+capes[cape]);
-
-                let weapon = swords[getRand(0, swords.length-1)];
-                let strength = getRand(200,500);
-                let money = getRand(700,1000);
-                let magic = false;
-                if (1 == getRand(0,1)){magic = true;}
-                
-                let gender = 'male';
-                if (getRand(0, 1) == 1) {gender = 'male';}
-                else {gender = 'female';}
-
-                let name = '---'
-                if (gender == 'male'){
-                    name = getRand(0, maleNames.length-1);
-                    name = maleNames.splice(name,1).toString();
-                }
-                else {
-                    name = getRand(0, femaleNames.length-1);
-                    name = femaleNames.splice(name,1).toString();
-                }
-
-                let color = getRand(0, colors.length-1);
-                let eyecolor = colors[color];
-                let haircolor = eyecolor;
-
-                if ( 1 == getRand(0,1)){
-                    name = name+', '+titles.splice(getRand(0,titles.length-1),1).toString();
-                }
-                else{
-                    let fulltitles = ['The Hero of '+towns[getRand(0,towns.length-1)].name, 'The Savior of '+towns[getRand(0,towns.length-1)].name, 'The Legend of '+town.name, 
-                    'The Bane of '+towns[getRand(0,towns.length-1)].name,
-                    'Warden of '+landmarks[getRand(0,landmarks.length-1)].name, 'Tyrant of '+landmarks[getRand(0,landmarks.length-1)].name, 'Keeper of '+landmarks[getRand(0,landmarks.length-1)].name, 
-                    'Deacon of '+landmarks[getRand(0,landmarks.length-1)].name,  'The '+haircolor+' Pheonix', 'The '+haircolor+' Fox', 'The '+haircolor+' Hawk', 'The '+haircolor+' Lion', 'The '+haircolor+' Shark', 
-                    'The '+haircolor+' Eagle', 'The '+haircolor+' Bear', 'The '+haircolor+' Snake', 'The '+haircolor+' Menace', 'The '+haircolor+' Hero', 'The '+eyecolor+' eyed Master'];
-
-                    name = name+', '+fulltitles.splice(getRand(0,fulltitles.length-1),1).toString();
-                    }
-
-                let character = new Person(town.loc, gender, name, undefined, undefined, haircolor, eyecolor, town, undefined, goals, undefined, clothing, weapon, strength, money, undefined, magic);
-                characters.push(character);
-                keywords.push(character.name);
-                legends.push(character.name);
+                spawnLegend(town);
             }
         }
     }
 
     //ORSTED THE ANNHILIATOR
-    //travels between landmarks and towns, hunting down the player.
+    //travels between Dungeons and towns, hunting down the player.
     createOrsted = function(){
-        let startloc = landmarks[getRand(0,landmarks.length-1)];
+        let startloc = Dungeons[getRand(0,Dungeons.length-1)];
         let gender = 'male';
         let goals = [];
-        let goal = new Goal(player.name, 'kill '+player.name);
-        goals.push(goal);
-        let target = landmarks[getRand(0,landmarks.length-1)];
+        // let goal = new Goal(player.name, 'kill '+player.name);
+        // goals.push(goal);
+        let target = Dungeons[getRand(0,Dungeons.length-1)];
         goal = new Goal(target.name, 'travel to '+target.name);
         goals.push(goal);
 
@@ -1506,40 +1615,82 @@ function seedCharacters(){
         let eyecolor = 'Golden';
         let haircolor = 'White';
 
-        orsted = new Person(startloc.loc, gender, name, 1000, 'evil', haircolor, eyecolor, towns[getRand(0,towns.length-1)], undefined, goals, undefined, clothing, weapon, strength, money, undefined, magic);
+        orsted = new Person(startloc.loc, gender, name, 100, 'Evil', haircolor, eyecolor, towns[getRand(0,towns.length-1)], undefined, goals, undefined, clothing, weapon, strength, money, undefined, magic);
         characters.push(orsted);
         keywords.push(orsted.name);
         legends.push(orsted.name);
     } 
 
-    createPlayer();
+    //monsterSuperior
+    //on average about 1 monster every four tiles would be good...
+    //lesser monsters on grasslands
+    //middle monsters and lesser monsters on desert and tundra
+    //superior monsters on dungeons and swamps
+    createMonsters = function(){
+        for (i=1; i<sizeX;i++){
+            for (j=1; j<sizeY; j++){
+                if (grid[i][j].water == false && grid[i][j].mountain == false){
+                    if (grid[i][j].Dungeon == true){
+                        let mon = monsterSuperior[getRand(0,monsterSuperior.length-1)];
+                        monster = new Monster(mon, {x:i,y:j});
+                        monsters.push(monster);
+                    }
+                    else if (grid[i][j].grassland == true){
+                        let roll = getRand(0,3);
+                        if (roll == 1){
+                            let mon = monsterMinor[getRand(0,monsterMinor.length-1)];
+                            monster = new Monster(mon, {x:i,y:j});
+                            monsters.push(monster);
+                        }
+                    }
+                    else if (grid[i][j].tundra == true){
+                        let roll = getRand(0,2);
+                        if (roll == 1){
+                            let mon = monsterMiddle[getRand(0,monsterMiddle.length-1)];
+                            monster = new Monster(mon, {x:i,y:j});
+                            monsters.push(monster);
+                        }
+                    }
+                    else if (grid[i][j].desert == true){
+                        let roll = getRand(0,1);
+                        if (roll == 1){
+                            if (roll == 1){
+                                let mon = monsterMiddle[getRand(0,monsterMiddle.length-1)];
+                                monster = new Monster(mon, {x:i,y:j});
+                                monsters.push(monster);
+                            }
+                            roll = getRand(0,1);
+                            if (roll == 1){
+                                let mon = monsterMinor[getRand(0,monsterMinor.length-1)];
+                                monster = new Monster(mon, {x:i,y:j});
+                                monsters.push(monster);
+                            }
+                        }
+                    }
+                    else if (grid[i][j].swamp == true){
+                        let roll = getRand(0,1);
+                        if (roll == 1){
+                            let mon = monsterSuperior[getRand(0,monsterSuperior.length-1)];
+                            monster = new Monster(mon, {x:i,y:j});
+                            monsters.push(monster);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    //createPlayer();
     createCommoners();
     createMercenaries();
     createMerchants();
     createAdventurers(); 
     createLegends();
     createOrsted();
+    createMonsters();
 
     seedRelations();
     seedOpinions();
-    //seedMemories();
-
-    console.log(player);
-    console.log(orsted);
-    for (merch of legends){
-        for (char of characters){
-            if (char.name == merch){
-                console.log(char);
-            }
-        }
-    }
-    // for (town of towns){
-    //     for (character of characters){
-    //         if (character.hometown.name == town.name){
-    //             console.log(character);
-    //         }
-    //     }
-    // }
    
 }
 
@@ -1552,9 +1703,9 @@ function generateWorld(){
     console.log("building towns...");
     seedTowns();
 
-    //init landmarks
-    console.log("creating landmarks...");
-    seedLandmarks();
+    //init Dungeons
+    console.log("creating Dungeons...");
+    seedDungeons();
 
     //build roads
     console.log("building roads...");
@@ -1566,8 +1717,8 @@ function generateWorld(){
     
 }
 
-
-    
-
 generateWorld();
 dispGrid();
+console.log('---------')
+simulate(10, 0);
+//playgame();
