@@ -413,8 +413,8 @@ function chooseHometown(loc){
 }
 function chooseGoals(homeName){
     let goals = [];
-    let g = new Goal(homeName, 'live peacefully');
-    goals.push(g);
+    let g = new Goal(homeName, 'live');
+    goals.unshift(g);
     return goals;
 }
 function chooseClothing(){
@@ -668,7 +668,8 @@ if (dadflag == false){this.relations.push(new Relation('Dead', 'father'));}
 class Person {
     constructor(loc, gender=chooseGender(), name=chooseName(gender), age=getRand(18, 80), personality=choosePersonality(), haircolor=chooseHaircolor(),
     eyecolor=chooseEyecolor(), hometown=chooseHometown(loc), goals=chooseGoals(hometown.name), keyMemories=[], clothing=chooseClothing(),
-    weapon='fists', strength=getRand(1,20), money=getRand(20,50), goods=(new Goods()), magic=chooseMagic(), relations=chooseRelations(), opinions=chooseOpinions(), party=[name]){
+    weapon='fists', strength=getRand(1,20), money=getRand(20,50), goods=(new Goods()), magic=chooseMagic(), relations=chooseRelations(), opinions=chooseOpinions(), 
+    party=[name], actions=[]){
         this.loc = loc,
         this.gender = gender,
         this.name = name,
@@ -687,7 +688,8 @@ class Person {
         this.magic = magic,
         this.relations = relations,
         this.opinions = opinions,
-        this.party = party 
+        this.party = party ,
+        this.actions = actions;
     }
 }
 
@@ -882,13 +884,13 @@ function chooseMonsterDescription(name){
     return 'The monster type is '+color+' '+name+'. It is '+sizer+' and looks '+emotion+'.';
 }
 function chooseMonsterGoal(name){
-    let goal = new Goal(name, 'prowl for prey');
+    let goal = new Goal(name, 'prowl');
     let goals = [];
     goals.push(goal);
 }
 
 class Monster {
-    constructor(name, loc, goals=chooseMonsterGoal(name), strength=chooseMonsterStrength(name), clothing=chooseMonsterClothing(name), weapon=chooseMonsterWeapon(name), description=chooseMonsterDescription(name), party=[name]){
+    constructor(name, loc, goals=chooseMonsterGoal(name), strength=chooseMonsterStrength(name), clothing=chooseMonsterClothing(name), weapon=chooseMonsterWeapon(name), description=chooseMonsterDescription(name), party=[name], actions=[]){
         //I'm gonna keep the constructors this way so that if i wanted to make custom monsters later I can.
         this.name = name,
         this.loc = loc,
@@ -897,7 +899,8 @@ class Monster {
         this.clothing = clothing,
         this.weapon = weapon,
         this.description = description,
-        this.party = party
+        this.party = party,
+        this.actions = actions
     }
 }
 
@@ -1637,9 +1640,9 @@ function spawnCommoner(town, age=undefined, empty=[], empty2=[]){
 }
 
 function spawnMercenary(town, age=undefined, empty=[], empty2=[]){
-    let goal = new Goal(town.name, 'wait for mercenary work');
+    let goal = new Goal(town.name, 'live');
     let goals = [];
-    goals.push(goal);
+    goals.unshift(goal);
 
     let clothing = [];
     let color1 = mutedColors[getRand(0, mutedColors.length-1)];
@@ -1669,12 +1672,12 @@ function spawnMercenary(town, age=undefined, empty=[], empty2=[]){
 function spawnMerchant(town, age=undefined, empty=[], empty2=[], empty3=[], empty4=[]){
     let goals = [];
     let target = towns[getRand(0,towns.length-1)];
-    let goal = new Goal(town.name, 'rest between trips');
-    goals.push(goal);
-    goal = new Goal(target.name, 'travel to '+target.name);
-    goals.push(goal);
-    goal = new Goal(target.name, 'rest between trips');
-    goals.push(goal);
+    goal = new Goal(target.name, 'rest');
+    goals.unshift(goal);
+    goal = new Goal(target.name, 'travel');
+    goals.unshift(goal);
+    
+    
 
     let clothing = [];
     let color1 = colors[getRand(0, colors.length-1)];
@@ -1698,12 +1701,12 @@ function spawnMerchant(town, age=undefined, empty=[], empty2=[], empty3=[], empt
     for (j=0; j<bodynum; j++){
 
         let goals = [];
-        let goal = new Goal(character.name, 'help '+character.name);
-        goals.push(goal);
-        goal = new Goal(town.name, 'travel to '+town.name);
-        goals.push(goal);
-        goal = new Goal(town.name, 'wait for mercenary work');
-        goals.push(goal);
+        let goal = new Goal(town.name, 'live');
+        goals.unshift(goal);
+        goal = new Goal(town.name, 'travel');
+        goals.unshift(goal);
+        goal = new Goal(character.name, 'help');
+        goals.unshift(goal);
         
 
         let clothing = [];
@@ -1753,13 +1756,12 @@ function spawnMerchant(town, age=undefined, empty=[], empty2=[], empty3=[], empt
 
 function spawnAdventurer(town, age=undefined, empty=[], empty2=[]){
     let goals = [];
-    let goal = new Goal(town.name, 'rest between trips');
-    goals.push(goal);
     let target = Dungeons[getRand(0,Dungeons.length-1)];
-    goal = new Goal(target.name, 'travel to '+target.name);
-    goals.push(goal);
-    goal = new Goal(target.name, 'rest between trips');
-    goals.push(goal);
+    let goal = new Goal(target.name, 'travel');
+    goals.unshift(goal);
+    goal = new Goal(town.name, 'rest');
+    goals.unshift(goal);
+    
     
     let clothing = [];
         let color1 = colors[getRand(0, colors.length-1)];
@@ -1795,13 +1797,11 @@ function spawnAdventurer(town, age=undefined, empty=[], empty2=[]){
 
 function spawnLegend(town, empty=[], empty2=[]){
     let goals = [];
-    let goal = new Goal(town.name, 'rest between trips');
-    goals.push(goal);
     let target = Dungeons[getRand(0,Dungeons.length-1)];
-    goal = new Goal(target.name, 'travel to '+target.name);
-    goals.push(goal);
-    goal = new Goal(target.name, 'rest between trips');
-    goals.push(goal);
+    let goal = new Goal(target.name, 'travel');
+    goals.unshift(goal);
+    goal = new Goal(town.name, 'rest');
+    goals.unshift(goal);
     
 
     let clothing = [];
@@ -1887,23 +1887,9 @@ function spawnSuperiorM(x,y, goals=undefined){
 
 function spawnBandit(x,y, empty = [], empty2=[]){
     let goals = [];
-    let goal = new Goal(x+','+y, 'rest');
-    goals.push(goal);
-    goal = new Goal(x+','+y, 'rob weak passerby');
-    goals.push(goal);
-    goal = new Goal(x+','+y, 'rest');
-    goals.push(goal);
-    goal = new Goal(x+','+y, 'rob weak passerby');
-    goals.push(goal);
-    goal = new Goal(x+','+y, 'rest');
-    goals.push(goal);
-    goal = new Goal(x+','+y, 'rob weak passerby');
-    goals.push(goal);
-    let target = towns[getRand(0,towns.length-1)];
-    goal = new Goal(target.name, 'travel to '+target.name);
-    goals.push(goal);
-    goal = new Goal(target.name, 'live peacefully');
-    goals.push(goal);
+    let goal = new Goal(x+','+y, 'rob');
+    goals.unshift(goal);
+    
     
     let clothing = [];
     let color1 = mutedColors[getRand(0, mutedColors.length-1)];
@@ -1945,17 +1931,17 @@ function seedCharacters(){
 
     //player
     //I'll come back and put in the special birth stuff later
-    createPlayer = function(){
-        let birthplace = towns[getRand(0,towns.length-1)]
-        let mark =Dungeons[getRand(0,Dungeons.length-1)]
-        let goal = new Goal(mark.name, 'Have an Adventure! Explore '+mark.name);
-        let goals = [];
-        goals.push(goal);
-        let age = getRand(18,30);
-        player = new Person(birthplace.loc,undefined,undefined,age,undefined,undefined,undefined,birthplace,undefined, goals);
-        characters.push(player);
-        keywords.push(player.name);
-    }
+    // createPlayer = function(){
+    //     let birthplace = towns[getRand(0,towns.length-1)]
+    //     let mark =Dungeons[getRand(0,Dungeons.length-1)]
+    //     let goal = new Goal(mark.name, 'Have an Adventure! Explore '+mark.name);
+    //     let goals = [];
+    //     goals.push(goal);
+    //     let age = getRand(18,30);
+    //     player = new Person(birthplace.loc,undefined,undefined,age,undefined,undefined,undefined,birthplace,undefined, goals);
+    //     characters.push(player);
+    //     keywords.push(player.name);
+    // }
 
     //commoners
     //mostly just mill about in town. Every so often will travel to a new town.
@@ -2015,8 +2001,8 @@ function seedCharacters(){
         // let goal = new Goal(player.name, 'kill '+player.name);
         // goals.push(goal);
         let target = Dungeons[getRand(0,Dungeons.length-1)];
-        goal = new Goal(target.name, 'travel to '+target.name);
-        goals.push(goal);
+        goal = new Goal(target.name, 'travel');
+        goals.unshift(goal);
 
         let clothing = [];
         

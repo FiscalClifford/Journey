@@ -309,6 +309,12 @@ var monsterSuperior = ['Eldritch Horror', 'Dragon', 'Titan', 'Hydra'];
 
 var monstertypes = monsterMinor.concat(monsterMiddle).concat(monsterSuperior);
 
+var maims = ['missing left arm', 'missing right arm', 'missing left hand', 'missing right hand', 'missing left ear', 'missing right ear', 'missing left eye', 'missing right eye', 'missing nose', 'missing left foot',
+'missing right foot', 'missing left fingers'];
+
+var scars = ['scar across the left eye', 'scar across the right eye', 'scar across the nose', 'scar across the face', 'scar across the chest', 'scar across the left shoulder', 'scar across the right shoulder',
+'scar across the waist', 'scar across the back', 'scar across the left leg', 'scar across the right leg', 'scar across the chin', 'scar across the mouth', 'scar across the left eyebrow', 'scar across the right eyebrow',
+'scar across the forehead', 'scar across the neck', 'scar across the collarbone'];
 // list of actions i've used so far:
 // rest between trips
 // live peacefully
