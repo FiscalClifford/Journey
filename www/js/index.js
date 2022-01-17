@@ -112,8 +112,13 @@ function findPath(startPoint, endPoint){
             paths.push(parent);
             path = {x:parent.x,y:parent.y};
             }
-
-        return paths.reverse();
+        let answer = paths.reverse();
+        if (answer.length > 2){
+            if (answer[0].x == answer[1].x && answer[0].y == answer[1].y){
+                answer.shift();
+            }
+        }   
+        return answer;
     }
 
     var queue = [];
@@ -122,17 +127,115 @@ function findPath(startPoint, endPoint){
     var final = []
 
     //main loop
+    for(i=0;i<sizeX;i++){
+        for(j=0;j<sizeY;j++){
+            grid[i][j].parent = undefined;
+            grid[i][j].pathVisited = false;
+        }
+    }
     while (queue.length) {
         queue = shuffle(queue);
         var currentLocation = queue.shift();
         if (currentLocation.x == endPoint.x && currentLocation.y == endPoint.y){
             final = printPath(currentLocation);
-            for(i=0;i<sizeX;i++){
-                for(j=0;j<sizeY;j++){
-                    grid[i][j].parent = undefined;
-                    grid[i][j].pathVisited = false;
-                }
+            
+            return final;
+        }    
+        grid[currentLocation.x][currentLocation.y].pathVisited = true;
+        var neighbors = exploreLoc(currentLocation);
+        for(neighbor of neighbors){
+          if(grid[neighbor.x][neighbor.y].pathVisited != true){
+              for (i=0; i < queue.length;i++){
+                  if (queue[i].x == neighbor.x && queue[i].y == neighbor.y){
+                    matchFlag = true;
+                  }
+              }
+              if (matchFlag == false){
+                queue.push(neighbor);
+                grid[neighbor.x][neighbor.y].parent = currentLocation;
+              }
+              else matchFlag = false;
+          }
+        }
+    }
+    return false;
+}
+
+function findPathFlying(startPoint, endPoint){
+    console.log("called findPathFlying");
+
+    //check if outside of bounds or blocked
+    safeNeighbor = function (x, y) {
+        if (x < 0 || x >= sizeX) {return false;}
+        if (y < 0 || y >= sizeY) {return false;}
+        return true;
+    };
+
+    //returns list of viable neighbors to visit
+    exploreLoc = function (loc) {
+        let allNeighbors = [];
+        //console.log("finding neighbors for: "+loc.x+","+loc.y);
+        let x = loc.x;
+        let y = loc.y;
+        //left
+        if (safeNeighbor(x, y - 1)){
+            allNeighbors.push({x: x, y: y-1});
+        } 
+        //right
+        if (safeNeighbor(x, y + 1)) {
+            allNeighbors.push({x: x, y: y+1});
+        }
+        //top
+        if (safeNeighbor(x - 1, y)) {
+            allNeighbors.push({x: x-1, y: y});
+        }
+        //bottom
+        if (safeNeighbor(x + 1, y)) {
+            allNeighbors.push({x: x+1, y: y});
+        }
+        console.log(allNeighbors);
+        return allNeighbors;
+    };
+
+    printPath = function (path){
+    //go backwards through parents and assemeble final answer
+        let paths = [path];
+        while(true){
+            let x = path.x;
+            let y = path.y;
+            let parent = grid[x][y].parent;
+            if(parent == undefined)
+              break;
+            paths.push(parent);
+            path = {x:parent.x,y:parent.y};
             }
+        let answer = paths.reverse();
+        if (answer.length > 2){
+            if (answer[0].x == answer[1].x && answer[0].y == answer[1].y){
+                answer.shift();
+            }
+        }   
+        return answer;
+    }
+
+    var queue = [];
+    queue.push(startPoint);
+    var matchFlag = false;
+    var final = []
+
+    //main loop
+    for(i=0;i<sizeX;i++){
+        for(j=0;j<sizeY;j++){
+            grid[i][j].parent = undefined;
+            grid[i][j].pathVisited = false;
+        }
+    }
+    while (queue.length) {
+        queue = shuffle(queue);
+        var currentLocation = queue.shift();
+        if (currentLocation.x == endPoint.x && currentLocation.y == endPoint.y){
+            final = printPath(currentLocation);
+            
             return final;
         }    
         grid[currentLocation.x][currentLocation.y].pathVisited = true;
@@ -234,8 +337,8 @@ var monsters = [];
 var bandits = [];
 var dead = [];
 var artifacts = [];
-var day = 1000;
-var kiloyear = 100;
+var day = 100;
+var kiloyear = 1;
 var player;
 var orsted;
 
@@ -337,7 +440,7 @@ function chooseDungDesc(){
 }
 
 class Dungeon{
-    constructor(name=chooseDungeonName(), loc=chooseDungeonPlace(), description=chooseDungDesc(), countdown=30){
+    constructor(name=chooseDungeonName(), loc=chooseDungeonPlace(), description=chooseDungDesc(), countdown=50){
         this.name = name,
         this.loc = loc,
         this.description = description,
@@ -469,7 +572,12 @@ function chooseOpinions(){
                     op.affinity = getRand(0,79); 
                     op.familiar = true;}
             }
-            this.party.push(rel.keyword);
+            for (char of characters){
+                if (char.name == rel.keyword){
+                    this.party.push(char);
+                }
+            }
+            
         }
     }
     // don't hate hometown too much
@@ -669,7 +777,7 @@ class Person {
     constructor(loc, gender=chooseGender(), name=chooseName(gender), age=getRand(18, 80), personality=choosePersonality(), haircolor=chooseHaircolor(),
     eyecolor=chooseEyecolor(), hometown=chooseHometown(loc), goals=chooseGoals(hometown.name), keyMemories=[], clothing=chooseClothing(),
     weapon='fists', strength=getRand(1,20), money=getRand(20,50), goods=(new Goods()), magic=chooseMagic(), relations=chooseRelations(), opinions=chooseOpinions(), 
-    party=[name], actions=[]){
+    party=[this], actions=[]){
         this.loc = loc,
         this.gender = gender,
         this.name = name,
@@ -887,10 +995,11 @@ function chooseMonsterGoal(name){
     let goal = new Goal(name, 'prowl');
     let goals = [];
     goals.push(goal);
+    return goals;
 }
 
 class Monster {
-    constructor(name, loc, goals=chooseMonsterGoal(name), strength=chooseMonsterStrength(name), clothing=chooseMonsterClothing(name), weapon=chooseMonsterWeapon(name), description=chooseMonsterDescription(name), party=[name], actions=[]){
+    constructor(name, loc, goals=chooseMonsterGoal(name), strength=chooseMonsterStrength(name), clothing=chooseMonsterClothing(name), weapon=chooseMonsterWeapon(name), description=chooseMonsterDescription(name), party=[this], actions=[]){
         //I'm gonna keep the constructors this way so that if i wanted to make custom monsters later I can.
         this.name = name,
         this.loc = loc,
@@ -937,8 +1046,8 @@ class Relation{
     }
 }
 
-//-100 -> -80 Hate, will attack on sight
-//-80 -> -60  despise, might attack on sight
+//-100 -> -80 Hate, will attack on sight and actively hunt down target.
+//-80 -> -60  despise, will attack on sight.
 //-60 -> -40  annoyed, will only insult
 //-40 -> -20  dislike, will barely talk
 //-20 -> 0    neutral dislike, will say bare minimum
@@ -1242,6 +1351,32 @@ function seedTowns(){
             z = (towntotal + 1);
         }
     }
+
+    //each town needs to be accessible
+    for (town1 of towns){
+        for (town2 of towns){
+            if (town1.name != town2.name){
+                console.log('~~~')
+                console.log(town1.loc);
+                console.log(town2.loc);
+                let route = findPath(town1.loc, town2.loc);
+                if (route == false){
+                    let bulldozer = findPathFlying(town1.loc, town2.loc);
+                    console.log(bulldozer);
+                    if (bulldozer != false){
+                        for (tile of bulldozer){
+                            let x = tile.x; 
+                            let y = tile.y;
+                            grid[x][y].mountain = false;
+                            grid[x][y].water = false;
+                        }
+                    }else{
+                        console.log('couldnt find route????');
+                    }
+                }
+            }
+        }
+    }
 }
 
 function seedDungeons(){
@@ -1290,7 +1425,7 @@ function seedDungeons(){
             }
         }
         counter ++;
-        //if impossible to make more towns
+        //if impossible to make more dungeons
         if (counter > (sizeX*sizeY)){
             q = (DungeonTotal + 1);
         }
@@ -1337,11 +1472,12 @@ function seedRoads(){
             //find the path between these points
             //console.log("finding path between " + townStart.loc.x + "," + townStart.loc.y + " and " + townEnd.x + "," + townEnd.y);
             let roadRoute = findPath(townStart.loc, townEnd);
-            //console.log('roadroute: ' +roadRoute);
             if (roadRoute != false){
                 for (item of roadRoute){
                     //console.log(item.x + "," + item.y);
-                    grid[item.x][item.y].road = true;
+                    if (grid[item.x][item.y].town == false){
+                        grid[item.x][item.y].road = true;
+                    }
                 }
             }
             else {console.log('cannot build road');} 
@@ -1352,154 +1488,144 @@ function seedRoads(){
 }
 
 function seedRelations(){
-//Relations
-for (person of characters){
-    //mom
-    characters = shuffle(characters);
-    let mothered = false;
-    for (rel of person.relations){
-        if (rel.relation == 'mother'){mothered = true;}
-    }
-    if (mothered == false){
-        for (p2 of characters){
-            if (p2.age > person.age + 18 && p2.hometown.name == person.hometown.name){
-                if (p2.gender == 'female'){
-                    let childCounter = 0;
-                    for (rel of p2.relations){
-                        if (rel.relation == 'child'){childCounter++;}
-                    }
-                    if (childCounter < 4){
-                        let a = new Relation(p2.name, 'mother');
-                        person.relations.push(a);
-                        let b = new Relation(person.name, 'child');
-                        p2.relations.push(b);
-
-                        //check if married
+    //Relations
+    for (person of characters){
+        //mom
+        characters = shuffle(characters);
+        let mothered = false;
+        for (rel of person.relations){
+            if (rel.relation == 'mother'){mothered = true;}
+        }
+        if (mothered == false){
+            for (p2 of characters){
+                if (p2.age > person.age + 18 && p2.hometown.name == person.hometown.name){
+                    if (p2.gender == 'female'){
+                        let childCounter = 0;
                         for (rel of p2.relations){
-                            if (rel.relation == 'married'){
-                                let dad = rel.keyword;
-                                let c = new Relation(dad, 'father');
-                                person.relations.push(c);
-                                for (dude of characters){
-                                    if (dude.name == dad){
-                                        let d = new Relation(person.name, 'child');
-                                        dude.relations.push(d);
-                                        
-                                    }
-                                }
-                            }
+                            if (rel.relation == 'child'){childCounter++;}
                         }
-                        break;   
-                    }
-                }
-            }
-        }
-    }
-    mothered = false;
-    for (rel of person.relations){
-        if (rel.relation == 'mother'){mothered = true;}
-    }
-    if (mothered == false){
-        let e = new Relation('Dead', 'mother');
-        person.relations.push(e);
-    }
-
-    //dad
-    characters = shuffle(characters);
-    let fathered = false;
-    for (rel of person.relations){
-        if (rel.relation == 'father'){fathered = true;}
-    }
-    if (fathered == false){
-        for (p2 of characters){
-            if (p2.age > person.age + 18 && p2.hometown.name == person.hometown.name){
-                if (p2.gender == 'male' && p2.name != 'ORSTED THE ANNIHILATOR'){
-                    let childCounter = 0;
-                    for (rel of p2.relations){
-                        if (rel.relation == 'child'){childCounter++;}
-                    }
-                    if (childCounter < 4){
-                        let a = new Relation(p2.name, 'father');
-                        person.relations.push(a);
-                        let b = new Relation(person.name, 'child');
-                        p2.relations.push(b);
-
-                        //check if married
-                        for (rel of p2.relations){
-                            if (rel.relation == 'married'){
-                                let mom = rel.keyword;
-                                let c = new Relation(mom, 'mother');
-                                person.relations.push(c);
-                                for (gal of characters){
-                                    if (gal.name == mom){
-                                        let d = new Relation(person.name, 'child');
-                                        gal.relations.push(d);
-                                    }
-                                }
-                            }
-                        } 
-                        break;   
-                    }
-                }
-            }
-        }
-    }
-    fathered = false;
-    for (rel of person.relations){
-        if (rel.relation == 'father'){fathered = true;}
-    }
-    if (fathered == false){
-        let f = new Relation('Dead', 'father');
-        person.relations.push(f);
-    }
-
-}
-//find family
-characters = shuffle(characters);
-for (person of characters){
-    for (rel of person.relations){
-        if (rel.relation == 'father' || rel.relation == 'mother'){
-            let parent = rel.keyword;
-            for (target of characters){
-                if (target.name == parent){
-                    for (peep of target.relations){
-                        //relations of the parents
-                        if (peep.relation == 'child' && peep.keyword != person.name){
-                            let a = new Relation(peep.keyword, 'family');
+                        if (childCounter < 4){
+                            let a = new Relation(p2.name, 'mother');
                             person.relations.push(a);
+                            let b = new Relation(person.name, 'child');
+                            p2.relations.push(b);
+
+                            //check if married
+                            for (rel of p2.relations){
+                                if (rel.relation == 'married'){
+                                    let dad = rel.keyword;
+                                    let c = new Relation(dad, 'father');
+                                    person.relations.push(c);
+                                    for (dude of characters){
+                                        if (dude.name == dad){
+                                            let d = new Relation(person.name, 'child');
+                                            dude.relations.push(d);
+                                            
+                                        }
+                                    }
+                                }
+                            }
+                            break;   
+                        }
+                    }
+                }
+            }
+        }
+        mothered = false;
+        for (rel of person.relations){
+            if (rel.relation == 'mother'){mothered = true;}
+        }
+        if (mothered == false){
+            let e = new Relation('Dead', 'mother');
+            person.relations.push(e);
+        }
+
+        //dad
+        characters = shuffle(characters);
+        let fathered = false;
+        for (rel of person.relations){
+            if (rel.relation == 'father'){fathered = true;}
+        }
+        if (fathered == false){
+            for (p2 of characters){
+                if (p2.age > person.age + 18 && p2.hometown.name == person.hometown.name){
+                    if (p2.gender == 'male' && p2.name != 'ORSTED THE ANNIHILATOR'){
+                        let childCounter = 0;
+                        for (rel of p2.relations){
+                            if (rel.relation == 'child'){childCounter++;}
+                        }
+                        if (childCounter < 4){
+                            let a = new Relation(p2.name, 'father');
+                            person.relations.push(a);
+                            let b = new Relation(person.name, 'child');
+                            p2.relations.push(b);
+
+                            //check if married
+                            for (rel of p2.relations){
+                                if (rel.relation == 'married'){
+                                    let mom = rel.keyword;
+                                    let c = new Relation(mom, 'mother');
+                                    person.relations.push(c);
+                                    for (gal of characters){
+                                        if (gal.name == mom){
+                                            let d = new Relation(person.name, 'child');
+                                            gal.relations.push(d);
+                                        }
+                                    }
+                                }
+                            } 
+                            break;   
+                        }
+                    }
+                }
+            }
+        }
+        fathered = false;
+        for (rel of person.relations){
+            if (rel.relation == 'father'){fathered = true;}
+        }
+        if (fathered == false){
+            let f = new Relation('Dead', 'father');
+            person.relations.push(f);
+        }
+
+    }
+    //find family
+    characters = shuffle(characters);
+    for (person of characters){
+        for (rel of person.relations){
+            if (rel.relation == 'father' || rel.relation == 'mother'){
+                let parent = rel.keyword;
+                for (target of characters){
+                    if (target.name == parent){
+                        for (peep of target.relations){
+                            //relations of the parents
+                            if (peep.relation == 'child' && peep.keyword != person.name){
+                                let a = new Relation(peep.keyword, 'family');
+                                person.relations.push(a);
+                            }
                         }
                     }
                 }
             }
         }
     }
-}
 
-//married
-characters = shuffle(characters);
-let ismarried = false;
-for (rel of person.relations){
-    if (rel.relation == 'married'){ismarried = true;}
-}
-if (ismarried == false && getRand(0,100) > 50){
-    for (p2 of characters){
-        ismarried = false;
-        for (rel of p2.relations){
-            if (rel.relation == 'married'){ismarried = true;}
-            if (rel.relation == 'family' && rel.keyword == person.name){ismarried = true;}
-        }
-        if (person.gender != p2.gender && p2.hometown.name == person.hometown.name){
-            if (p2.age < person.age + 5 && p2.age > person.age -5 && ismarried == false){
-                let a = new Relation(p2.name, 'married');
-                person.relations.push(a);
-                let b = new Relation(person.name, 'married');
-                p2.relations.push(b);
-                break;
+    //married
+    characters = shuffle(characters);
+    let ismarried = false;
+    for (rel of person.relations){
+        if (rel.relation == 'married'){ismarried = true;}
+    }
+    if (ismarried == false && getRand(0,100) > 50){
+        for (p2 of characters){
+            ismarried = false;
+            for (rel of p2.relations){
+                if (rel.relation == 'married'){ismarried = true;}
+                if (rel.relation == 'family' && rel.keyword == person.name){ismarried = true;}
             }
-        }
-        else {
-            if (69 == getRand(0,100)){
-                if (p2.age < person.age + 5 && p2.age > person.age -5 && ismarried == false && p2.hometown.name == person.hometown.name){
+            if (person.gender != p2.gender && p2.hometown.name == person.hometown.name){
+                if (p2.age < person.age + 5 && p2.age > person.age -5 && ismarried == false){
                     let a = new Relation(p2.name, 'married');
                     person.relations.push(a);
                     let b = new Relation(person.name, 'married');
@@ -1507,33 +1633,58 @@ if (ismarried == false && getRand(0,100) > 50){
                     break;
                 }
             }
-        }
-    }
-}
-
-//trim duplicates
-for (person of characters){
-    console.log(person);
-    for (p1 in person.relations){
-        for (p2 in person.relations){
-            if (p1 != p2 && person.relations[p1].keyword == person.relations[p2].keyword && person.relations[p1].relation == person.relations[p2].relation){
-                person.relations.splice(p2,1);
+            else {
+                if (69 == getRand(0,100)){
+                    if (p2.age < person.age + 5 && p2.age > person.age -5 && ismarried == false && p2.hometown.name == person.hometown.name){
+                        let a = new Relation(p2.name, 'married');
+                        person.relations.push(a);
+                        let b = new Relation(person.name, 'married');
+                        p2.relations.push(b);
+                        break;
+                    }
+                }
             }
         }
     }
-}
 
-//dead parents if nothing
-for (person of characters){
-    let momflag = false;
-    let dadflag = false;
-    for (p1 of person.relations){
-        if (p1.relation == 'mother'){momflag = true;}
-        if (p1.relation == 'father'){dadflag = true;}
+
+
+    //dead parents if nothing
+    for (person of characters){
+        let momflag = false;
+        let dadflag = false;
+        for (p1 of person.relations){
+            if (p1.relation == 'mother'){momflag = true;}
+            if (p1.relation == 'father'){dadflag = true;}
+        }
+        if (momflag == false){person.relations.push(new Relation('Dead', 'mother'));}
+        if (dadflag == false){person.relations.push(new Relation('Dead', 'father'));}
+        // for (merch of merchants){
+        //     if (merch == person.name){
+        //         person.relations.push(new Relation('Dead', 'mother'));
+        //         person.relations.push(new Relation('Dead', 'father'));
+        //     }
+        // }
+
+        
     }
-    if (momflag == false){person.relations.push(new Relation('Dead', 'mother'));}
-    if (dadflag == false){person.relations.push(new Relation('Dead', 'father'));}
-}
+
+    //trim duplicates
+
+    // for (person of characters){
+    //     console.log(person);
+    //     for (p1 in person.relations){
+    //         for (p2 in person.relations){
+    //             console.log('p1: '+person.relations[p1].keyword);
+    //             console.log('p2: '+person.relations[p2].keyword);
+    //             if (p1 != p2 && person.relations[p1].keyword == person.relations[p2].keyword && person.relations[p1].relation == person.relations[p2].relation){
+    //                 person.relations.splice(p2,1);
+    //             }
+    //         }
+    //     }
+    // }
+
+
 }
 
 function seedOpinions(){
@@ -1603,7 +1754,7 @@ function seedOpinions(){
         for (op of person.opinions){
             if (op.keyword == 'ORSTED THE ANNIHILATOR'){
                 op.familiar = true;
-                op.affinity = getRand(-80, -60);
+                op.affinity = getRand(-70, -10);
             }
         }
         
@@ -1740,8 +1891,8 @@ function spawnMerchant(town, age=undefined, empty=[], empty2=[], empty3=[], empt
         
         let a = new Relation(guard.name, 'bodyguard');
         let b = new Relation(character.name, 'employer');
-        character.party.push(guard.name);
-        guard.party.push(character.name);
+        character.party.push(guard);
+        guard.party.push(character);
         guard.relations.push(b);
         character.relations.push(a);
 
@@ -1869,19 +2020,19 @@ function spawnLegend(town, empty=[], empty2=[]){
 
 function spawnMinorM(x,y,goals=undefined){
     let mon = monsterMinor[getRand(0,monsterMinor.length-1)];
-    monster = new Monster(mon, {x:x,y:y}, goals);
+    let monster = new Monster(mon, {x:x,y:y}, goals);
     monsters.push(monster);
 }
 
 function spawnMiddleM(x,y,goals=undefined){
     let mon = monsterMiddle[getRand(0,monsterMiddle.length-1)];
-    monster = new Monster(mon, {x:x,y:y}, goals);
+    let monster = new Monster(mon, {x:x,y:y}, goals);
     monsters.push(monster);
 }
 
 function spawnSuperiorM(x,y, goals=undefined){
     let mon = monsterSuperior[getRand(0,monsterSuperior.length-1)];
-    monster = new Monster(mon, {x:x,y:y}, goals);
+    let monster = new Monster(mon, {x:x,y:y}, goals);
     monsters.push(monster);
 }
 
@@ -1924,24 +2075,11 @@ function seedCharacters(){
     //5. add big 8
     //6. add Orsted
 
+    //these values are per town
     let commonies = 20;
     let mercies = 6;
     let merchies = 5;
     let adventies = 4;
-
-    //player
-    //I'll come back and put in the special birth stuff later
-    // createPlayer = function(){
-    //     let birthplace = towns[getRand(0,towns.length-1)]
-    //     let mark =Dungeons[getRand(0,Dungeons.length-1)]
-    //     let goal = new Goal(mark.name, 'Have an Adventure! Explore '+mark.name);
-    //     let goals = [];
-    //     goals.push(goal);
-    //     let age = getRand(18,30);
-    //     player = new Person(birthplace.loc,undefined,undefined,age,undefined,undefined,undefined,birthplace,undefined, goals);
-    //     characters.push(player);
-    //     keywords.push(player.name);
-    // }
 
     //commoners
     //mostly just mill about in town. Every so often will travel to a new town.
@@ -1995,9 +2133,30 @@ function seedCharacters(){
     //ORSTED THE ANNHILIATOR
     //travels between Dungeons and towns, hunting down the player.
     createOrsted = function(){
-        let startloc = Dungeons[getRand(0,Dungeons.length-1)];
+        let startloc = towns[getRand(0,towns.length-1)];
         let gender = 'male';
         let goals = [];
+
+        let artifact = new Artifact({x:0,y:0}, 'weapon', 'THE GODSWORD', 10000, 100000);
+        artifacts.push(artifact);
+        keywords.push(artifact.name);
+
+        artifact = new Artifact({x:0,y:0}, 'lower', 'perfectly clean white pants', 1000, 100000);
+        artifacts.push(artifact);
+        keywords.push(artifact.name);
+
+        artifact = new Artifact({x:0,y:0}, 'upper', 'pure white coat with a high collar and golden buttons', 1000, 100000);
+        artifacts.push(artifact);
+        keywords.push(artifact.name);
+
+        artifact = new Artifact({x:0,y:0}, 'hat', 'white hood with intricate black markings', 1000, 100000);
+        artifacts.push(artifact);
+        keywords.push(artifact.name);
+
+        artifact = new Artifact({x:0,y:0}, 'cape', 'jet black cape strung from golden chains', 1000, 100000);
+        artifacts.push(artifact);
+        keywords.push(artifact.name);
+
         // let goal = new Goal(player.name, 'kill '+player.name);
         // goals.push(goal);
         let target = Dungeons[getRand(0,Dungeons.length-1)];
@@ -2007,19 +2166,21 @@ function seedCharacters(){
         let clothing = [];
         
         clothing.push('perfectly clean white pants');
-        clothing.push('pure white coat with a high collar and golden buttons.');
+        clothing.push('pure white coat with a high collar and golden buttons');
+        clothing.push('white hood with intricate black markings');
         clothing.push('Jet black cape strung from golden chains');
 
-        let weapon = 'fists';
-        let strength = getRand(10,000);
+        let weapon = 'THE GODSWORD';
+        let strength = 10000;
         let money = 0;
         let magic = true;
         let name = 'ORSTED THE ANNIHILATOR';
         let eyecolor = 'Golden';
         let haircolor = 'White';
-        let empty = [];
+        let empty1 = [];
+        let empty2 = [];
 
-        orsted = new Person(startloc.loc, gender, name, 100, 'Evil', haircolor, eyecolor, towns[getRand(0,towns.length-1)], goals, undefined, clothing, weapon, strength, money, undefined, magic, empty, empty);
+        let orsted = new Person(startloc.loc, gender, name, 100, 'Evil', haircolor, eyecolor, towns[getRand(0,towns.length-1)], goals, undefined, clothing, weapon, strength, money, undefined, magic, empty1, empty2);
         characters.push(orsted);
         keywords.push(orsted.name);
         legends.push(orsted.name);
@@ -2127,6 +2288,9 @@ function generateWorld(){
 
 generateWorld();
 dispGrid();
-console.log('---------')
-//simulate(10, 0);
+console.log(towns);
+console.log(Dungeons);
+console.log('---------');
+simulate(0, 1);
+asdfadsf
 //playgame();

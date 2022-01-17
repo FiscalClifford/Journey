@@ -1,164 +1,31 @@
 // This is meant to simulate the world progress for a specified amount of time. I will have a seperate .js file for when the player can interact.
 // The two files should be largely similar however.
 
-const help = require("cordova/src/help");
-const { find } = require("../../platforms/browser/platform_www/cordova_plugins");
+//const help = require("cordova/src/help");
+//const { find } = require("../../platforms/browser/platform_www/cordova_plugins");
 
 //Basic(0-20) -> intermediate(20-60) -> advanced(60-120) -> expert(120-200) -> master(200-300) -> Queen(300-500) -> King(500-1000) -> God(1000+)
 var big8;
 
-function simulate(yeers, days){
-    days = days + (yeers*100); //convert kiloyears to days
-    let yearCounter = 0;
-    for (dayz=0; dayz<days; dayz++){
-        console.log('day '+day);
-        big8 = getbig8();
-        console.log(big8);
-        //each day has 3 phase
-        for (phase = 0; phase<3; phase++){
-            
-            //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ character logic ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-            characters.shuffle();
-            for (char of characters){
-                //interact with characters or monsters on current tile. Talk, pick up artifacts, etc.
-                interact(char);
-
-                //add actions based on current goal
-                checkGoals(char);
-
-                //take action and edit goals based on result
-                takeAction(char);
-
-            }
-
-            //+++++++++++++++++++++++++++++++++++++++++++++++++++ monster logic +++++++++++++++++++++++++++++++++
-
-            for (mon of monsters){
-                spreadMonster(mon);
-                checkGoals(mon);
-                takeAction(char);
-                //check if too many monsters on tile and spread out if so
-                
-            }
-
-            //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& things that happen at the end of the phase &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-            for (char of characters){
-                for (opi of char.opinions){
-                    if (opi.affinity >100){opi.affinity=100;}
-                    if (opi.affinity <-100)(opi.affinity=-100);
-                }
-            }
-
-            //as interesting things happen a list is populated with those occurances. clear it out and console log it here.
-            reportEvents();
-
-        }
-        //********************************************* things that happen at the end of the day *******************************************************************
-        day++;
-        yearCounter++;
-        if (yearCounter == 100){
-            kiloyears++; 
-            yearCounter = 0;
-            for (character of characters){
-                character.age++;
-                //opinions of things slowly get less strong as the years go by
-                for (opi of character.opinions){
-                    if (opi.value < -23){opi.value = opi.value+3;}
-                    if (opi.value > 23){opi.value = opi.value-3;}
-                }
-            }
-        }
-
-        for (character of characters){
-            if (character.strength > 299 && containsItem(legends, character.name) == false){
-                transformToLegend(character);
-            }
-        }
-        //new people come of age over time
-        for (town of towns){
-            //it is very important you include undefined at the end!
-            if (69 == getRand(0,100)){spawnCommoner(town, 18, undefined, undefined);}
-            if (69 == getRand(0,100)){spawnMerchant(town, 18, undefined, undefined, undefined, undefined);}
-            if (69 == getRand(0,100)){spawnMercenary(town, 18, undefined, undefined);}
-            if (69 == getRand(0,100)){spawnAdventurer(town, 18, undefined, undefined);}
-        }
-        //die of old age
-        for (character of characters){
-            if (character.age > 75 && containsItem(legends, character.name)==false){
-                if (69 == getRand(0,1000)){
-                    //character dies of old age
-                    killCharacter(character);
-                }
-            }
-            if (character.age > 300){
-                if (69 == getRand(0,5000)){
-                    //character dies of old age
-                    killCharacter(character);
-                }
-            }
-        }
-        //new bandits
-        if (1 == getRand(0,9)){
-            let bandFlag = true;
-            while (bandFlag){
-                let i = getRand(1,sizeX-1);
-                let j = getRand(1,sizeY-1);
-                if (grid[i][j].road == true){
-                    bandFlag = false;
-                    spawnBandit(i,j, undefined, undefined);
-                }
-            }    
-        }      
-        //replenish monsters and artifacts at dungeons after 30 days
-        for (dung of Dungeons){
-            let flag = false;
-            for (arti of artifacts){
-                if (arti.loc.x == dung.loc.x && arti.loc.y == dung.loc.y){
-                    flag = true;
-                }
-            }
-            if (flag == false){
-                dung.countdown--;
-                if (dung.countdown < 1){
-                    dung.countdown = 30;
-                    console.log(dung.name+' replenishing monster & loot.')
-                    spawnSuperiorM(dung.loc.x, dung.loc.y, undefined);
-                    let artifact = new Artifact({x:dung.loc.x,y:dung.loc.y});
-                    artifacts.push(artifact);
-                    keywords.push(artifact.name);
-                }  
-            }
-        }
-        //characters like those they travel with.
-        for (char of characters) {
-            for (key of char.party){
-                for (opi of char.opinions){
-                    if (opi.keyword == key && opi.keyword != char.name){
-                        if (opi.affinity <80){opi.affinity++;}
-                    }
-                }
-            }
-        }
-        
-
-
-
-
-
-
-
-    }////////////////////
-
+var simulate = function(yeers, days){
+    
     // %%%%%%%%%%%%%%%%%%%%%% functions %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-
-    //ok so goals are a big picture look at what the character wants to accomplish. active goals are the actions the character are going to take,
+    getbig8 = function(){
+        let big = [];
+        
+        for (c of characters){
+            big.push(c);
+            sortArr(big);
+            if (big.length>8){big.pop();}
+        }
+        return big;
+    }
+        //ok so goals are a big picture look at what the character wants to accomplish. active goals are the actions the character are going to take,
     //sequentially, that phase. actions are born from goals. once an active goal is accomplished, the action is evaluated and the characters
     //goals are then changed.
     live = function(char, goal){
         //stay put indefinitely. has small chance to add goal of traveling to a different town and back
-                    
+        console.log(char.name+' is living peacefully.');            
         char.actions.push(new Goal(char.name, 'skip', false));
         let roll = (getRand(0, 600)); //dont forget about phases for likelyhood
         if (roll == 69){
@@ -174,36 +41,42 @@ function simulate(yeers, days){
         //find path to a loc. can be based on coords or keyword
     
         console.log('moving to '+goal.keyword);
+        console.log('char position is: '+char.loc.x+','+char.loc.y);
+        
         let target = goal.keyword;
-        let locflag = false;
-        if (target.loc.x == undefined){
+       
+        if (containsItem(keywords, target)){
             //target is not a loc, but actually a keyword
             for (town of towns){
                 if (town.name == target){
-                    target = town;
-                    locflag = true;
+                    target = town.loc;
                 }
             }
             for (dung of Dungeons){
                 if (dung.name == target){
-                    target = dung;
-                    locflag = true;
+                    target = dung.loc;
+                }
+            }
+            for (person of characters){
+                if (person.name == target){
+                    target = person.loc;
                 }
             }
         }
-        if (target.loc.x == char.loc.x && target.loc.y == char.loc.y){
+        console.log(goal.keyword+' position is: '+target.x+','+target.y);
+        if (target.x == char.loc.x && target.y == char.loc.y){
             //made it to destination
             char.goals.shift();
 
             //add mem and clean up find goal and get fam with loc
             let emotion = getEmo(getAff(char, goal.keyword));
             let myParty = char.party;
-            let mem = new Keymemory(day, myParty, {x:char.loc.x,y:char.loc.y}, 'Arrived at '+goal.keyword, emotion);
+            let mem = new KeyMemory(day, myParty, {x:char.loc.x,y:char.loc.y}, 'Arrived at '+goal.keyword, emotion);
             char.keyMemories.push(mem); 
             for (partyMem of char.party){
                 for (opi of partyMem.opinions){
                     if (opi.keyword == goal.keyword){
-                        opi.familiar == true;
+                        opi.familiar = true;
                     }
                 }
             }
@@ -215,19 +88,20 @@ function simulate(yeers, days){
             
             //setup next goal for indefinite char action
             if (containsItem(merchants, char.name) && char.goals.length < 1){
-                char.goals.unshift(new Goal(towns[getRand(0,towns.length-1)], 'travel'));
+                destination = towns[getRand(0,towns.length-1)];
+                char.goals.unshift(new Goal(destination.name, 'travel'));
                 char.goals.unshift(new Goal(destination.name, 'rest'));
             }
             if (containsItem(commoners, char.name) || containsItem(mercenaries, char.name)){
                 if (char.goals.length < 2){
                     if (char.loc.x != char.hometown.loc.x && char.loc.y != char.hometown.loc.y){
                         char.goals.unshift(new Goal(char.hometown.name, 'travel'));
-                        char.goals.unshift(new Goal(destination.name, 'rest'));
+                        char.goals.unshift(new Goal('here', 'rest'));
                     }
                     else{
                         
                         char.goals.unshift(new Goal(char.hometown.name, 'live'));
-                        char.goals.unshift(new Goal(destination.name, 'rest'));
+                        char.goals.unshift(new Goal(char.hometown.name, 'rest'));
                     } 
                 }
             }
@@ -237,13 +111,15 @@ function simulate(yeers, days){
                 if (roll == 1){
                     //go to a town
                     
-                    char.goals.unshift(new Goal(towns[getRand(0,towns.length-1)], 'travel'));
+                    destination = towns[getRand(0,towns.length-1)];
+                    char.goals.unshift(new Goal(destination.name, 'travel'));
                     char.goals.unshift(new Goal(destination.name, 'rest'));
                 }
                 else {
                     //go to a dungeon
                     
-                    char.goals.unshift(new Goal(Dungeons[getRand(0,Dungeons.length-1)], 'travel'));
+                    destination = Dungeons[getRand(0,Dungeons.length-1)];
+                    char.goals.unshift(new Goal(destination.name, 'travel'));
                     char.goals.unshift(new Goal(destination.name, 'rest'));
                 }
                 
@@ -254,13 +130,15 @@ function simulate(yeers, days){
                 if (roll == 1){
                     //go to a town
                     
-                    char.goals.unshift(new Goal(towns[getRand(0,towns.length-1)], 'travel'));
+                    destination = towns[getRand(0,towns.length-1)];
+                    char.goals.unshift(new Goal(destination.name, 'travel'));
                     char.goals.unshift(new Goal(destination.name, 'rest'));
                 }
                 else {
                     //go to a dungeon
                     
-                    char.goals.unshift(new Goal(Dungeons[getRand(0,Dungeons.length-1)], 'travel'));
+                    destination = Dungeons[getRand(0,Dungeons.length-1)];
+                    char.goals.unshift(new Goal(destination.name, 'travel'));
                     char.goals.unshift(new Goal(destination.name, 'rest'));
                 }
             
@@ -268,26 +146,25 @@ function simulate(yeers, days){
         }
         else{
             //move towards destination
-            if (locflag = false){
-                path = findPath(char.loc, target);
-                char.actions.push(new Goal(path[1], 'move'));
-            }
-            else {
-                path = findPath(char.loc, target.loc);
-                char.actions.push(new Goal(path[1], 'move'));
-            }
+          
+            path = findPath(char.loc, target);
+            console.log(path);
+            char.actions.push(new Goal(path[1], 'move'));
+            
+            
         
         }
     }
 
     rob = function(char, goal){
         //rob weaker passerby
+        console.log(char.name+' is wanting to rob.');  
         let roll = getRand(0,2);
         if (roll == 1){
             let nearby = [];
             for (character of characters){
                 if (character.loc.x == char.loc.x && character.loc.y == char.loc.y){
-                    if (character.name != me.name){
+                    if (character.name != char.name){
                         nearby.push(character);
                     }
                 }
@@ -300,6 +177,7 @@ function simulate(yeers, days){
     }
 
     help = function(char, goal){
+        console.log(char.name+' is helping '+goal.keyword);  
         //used for people helping the leader of their party
         let target = goal.keyword;
         var waste = false;
@@ -326,6 +204,7 @@ function simulate(yeers, days){
     }
 
     prowl = function(char, goal){
+        console.log(char.name+' is on the prowl.');  
         //initiates a fight with any character in the same tile regardless of strength. people help fight vs monsters
         let nearby = [];
         for (character of characters){
@@ -346,8 +225,8 @@ function simulate(yeers, days){
         //find information about a keyword. this is npc only. involves taking a couple turns to rest and checking if anyone
             //nearby is familiar with the keyword. if yes, they instantly get the location and travel there. dont forget to add 
             //a travel back to a town after in case they dont find the person.
-
-            
+            let target = goal.keyword;
+            console.log(char.name+' wants to find '+target);  
              //get object for target instead of keyword////////////////////////////////
              for (character of characters){
                 if (character.name == target){
@@ -363,12 +242,15 @@ function simulate(yeers, days){
                                 if (item == target){
                                     target = character;
                                     //char.goals.shift();
+                                    //add check if they already have these two goals
+                                    char.goals.unshift(new Goal(character.name, 'kill'));
                                     char.goals.unshift(new Goal(character.name, 'find'));
                                 }
                             }
                             if (character.weapon == target){
                                 target = character;
                                     //char.goals.shift();
+                                    char.goals.unshift(new Goal(character.name, 'kill'));
                                     char.goals.unshift(new Goal(character.name, 'find'));
                             }
                         }
@@ -387,7 +269,7 @@ function simulate(yeers, days){
                     target = town;
                 }
             }
-            if (target.loc.x == undefined){
+            if (target.loc.x === undefined){
                 //target is dead or something
                 console.log('tried to find '+target+'but to no avail.');
                 char.goals.shift();
@@ -402,11 +284,15 @@ function simulate(yeers, days){
 
             //have noticenearby() ask people nearby if one of goals is to find something, similar to what you did for kill.
 
+            if (char.goals.length < 3){
+                char.goals.unshift(towns[getRand(0,towns.length-1)].name,'travel');
+                char.goals.unshift('here','rest');
+            }
             if (target.loc.x != char.loc.x && target.loc.y != char.loc.y){
-                
                 char.actions.push(new Goal(target, 'ask'));
-                
-
+            }
+            else{
+                char.goals.shift();
             }
 
 
@@ -421,43 +307,597 @@ function simulate(yeers, days){
     }
 
     kill = function(char, goal){
-        //move towards and fight a character
-        //I MIGHT DELETE MOST OF THIS
-                // Don't worry about checking nearby, because that is handled already in noticeNearby()!
-                let nearby = [];
-                var foundflag = false;
-                var waste = false;
-                for(ghost of dead){
-                    if (ghost.name == target){
-                        waste = true;
+        //want to fight a character
+        
+        // Don't worry about checking nearby, because that is handled already in noticeNearby()!
+        let target = goal.keyword;
+        console.log(char.name+' wants to kill '+target);  
+        var waste = false;
+        for(ghost of dead){
+            if (ghost.name == target){
+                waste = true;
+            }
+        }
+        if (waste == true){
+            char.goals.shift();
+        }
+    }
+
+    fight = function(char, goal){
+        //differentiate between monster fight and human fight
+        //make sure party members are involved
+        //everyones opinions on both sides change based on their opinions of both (do this before bystander help)
+        //bystanders help vs monsters
+        //bystanders help those they really like >60
+        //once everyone is in the party and its time to fight, if one side is far lower strength than the other then they run
+        //dying has very low chance of happening unless huge strength descrepency
+        //you can add scars to clothing array starting after 4th index
+        //if character dies then dont forget to drop their stuff and call killcharacter()
+        let target = goal.keyword;
+        console.log(char.name+' is fighting '+target);
+        let monsterFight = false;
+        let p2 = undefined;
+        let p1 = undefined;
+        
+        
+        for (monster of monsters){
+            if (monster.name = target){
+                console.log('monster fight');
+                monsterFight = true;
+                p1 = char;
+                p2 = monster;
+
+            }
+        }
+        for (monster of monsters){
+            if (monster.name == char.name){
+                p1 = target;
+                p2 = char;
+                for (dude of characters){
+                    if (dude.name == p1){
+                        p1 = dude;
                     }
                 }
-                if (waste == true){
-                    char.goals.shift();
+            }
+        }
+
+        let p1Party = p1.party;
+        let p2Party = p2.party;
+
+        //monster fight
+        if (monsterFight == true){
+
+            let nearby = [];
+            for (character of characters){
+                if (character.loc.x == char.loc.x && character.loc.y == char.loc.y){
+                    if (character.name != char.name){
+                        nearby.push(character);   
+                    }
+                }
+            }
+            //add people from party
+            // for (dude of char.party){
+            //     if (dude.name != character.name){
+            //         let repeat = false;
+            //         for (thing of nearby){
+            //             if (thing.name == dude.name){
+            //                 repeat == true;
+            //             }
+            //         }
+            //         if (repeat == false){
+            //             nearby.push(dude);
+            //         }   
+            //     }
+            // }
+            
+            //make sure people nearby help if they like person enough
+            if (nearby.length>0){
+                for (near of nearby){
+                    let helping = false;
+                    for (opi of near.opinions){
+                        for (person of p1Party){
+                            if (opi.keyword == person.name){
+                                if (opi.affinity > -30){
+                                    helping = true;
+                                }
+                            }
+                        }
+                        
+                    }
+                    if (helping == true){
+                        console.log(near.name+' joining the fight for p1 side');
+                        p1Party.push(near);
+                    }
+                }
+            }
+            //size eachother up
+            let score1 = 0;
+            for (member of p1Party){
+                score1 = score1 + member.strength;
+                
+            }
+            let score2 = 0;
+            for (member of p2Party){
+                score1 = score1 + member.strength;
+            }
+
+            console.log (p1.name + ' party: '+score1+' vs. '+p2.name+' party: '+score2);
+            console.log(p1Party);
+            console.log(p2Party);
+            
+            //decide if p1 runs
+            if (score1 < score2-30){
+                let roll = getRand(0,2);
+                if (roll != 2){
+                    partyRunAway(p1Party);
+                    console.log(p1Party[0].name+' running away');
+                    return;
                 }else{
-                    for (character of characters){
-                        if (character.loc.x == char.loc.x && character.loc.y == char.loc.y){
-                            if (character.name != char.name){
-                                nearby.push(character);
+                    console.log(p1.name+' party cant escape!');
+                }
+            }
+            //fight
+
+            let roll = getRand(1,p1Party.length);
+            let p1Final = [];
+            for (i=0;i<roll;i++){
+                p1Final.concat(p1Party.splice(getRand(0,p1Final.length-1),1))
+            }
+
+            roll = getRand(1,p2Party.length);
+            let p2Final = [];
+            for (i=0;i<roll;i++){
+                p2Final.concat(p2Party.splice(getRand(0,p2Final.length-1),1))
+            }
+            console.log('This round: '+p1Final+' vs '+p2Final);
+            console.log(p1Final);
+            console.log(p2Final);
+
+            score1 = 0;
+            for (member of p1Final){
+                for (i=0; i<member.strengh;i++){
+                    let roll = getRand(1,6);
+                    score1 = score1 + roll;
+                }
+            }
+            score2 = 0;
+            for (member of p2Final){
+                for (i=0; i<member.strengh;i++){
+                    let roll = getRand(1,6);
+                    score2 = score2 + roll;
+                }
+            }
+
+            //before we decide who wins, alter opinions
+            for (fighter of p1Final){
+                for (f2 of p2Final){
+                    for (opi of fighter.opinions){
+                        if (opi.keyword == f2.name){
+                            opi.familiar = true;
+                            opi.affinity = opi.affinity-10;
+                            let emotion = getEmobyStrength(fighter, f2);
+                            let mem = new KeyMemory(day, [fighter.name, f2.name], {x:fighter.loc.x,y:fighter.loc.y}, 'I fought '+f2.name+'.', emotion);
+                            fighter.keyMemories.push(mem);
+                        }
+                    }
+                }
+            }
+            
+            //p1 wins
+            if (score1 >= score2){
+                console.log('p1 wins');
+                
+                for (guy1 of p1Final){
+                    for (guy2 of p2Final){
+                        let mem = new KeyMemory(day, [guy1.name, guy2.name], {x:guy1.loc.x,y:guy1.loc.y}, 'I defeated '+guy2.name+'.', 'happy');
+                        guy1.keyMemories.push(mem);
+                    }
+                }
+
+                //calculate who dies
+                //for monsters its everyone
+                //for humans if they die drop all their stuff. also change opinions, also key memories
+                for (monster of p2Final){
+                    monster.loc.x = 0;
+                    monster.loc.y = 0;
+                    killCharacter(monster);
+                }
+
+                //partyRunAway(p2Final);
+
+            }
+            //p2 wins
+            else{
+                console.log('monster wins');
+                for (guy1 of p2Final){
+                    for (guy2 of p1Final){
+                        let mem = new KeyMemory(day, [guy1.name, guy2.name], {x:guy1.loc.x,y:guy1.loc.y}, 'I was defeated by '+guy2.name+'.', 'scared');
+                        guy1.keyMemories.push(mem);
+                        for (opi of guy2.opinions){
+                            if (opi.keyword == guy1.name){
+                                opi.affinity = opi.affinity-20;
                             }
                         }
                     }
-                    for(character of nearby){
-                        if (character.name == goal.keyword){
-                            char.actions.push(new Goal(character.name, 'fight'));
-                            foundflag = true;
+                }
+                
+
+                
+                //at a minimum characters should get scarred or maimed
+                //small chance to drop artifact or clothing item as well. add key mems
+                for ( person of p1Final){
+                
+                    let result = 'scar';
+
+                    if (score2 > score1+100){
+                        let roll = getRand(0, 9);
+                        if (roll < 5){
+                            result = 'kill';
+                        }else{
+                            result = 'maim';
+                        }
+
+                    }else{
+                        let roll = getRand(0,9);
+                        if (roll == 0){
+                            result = 'kill';
+                        }
+                        if (roll == 1 || roll == 2){
+                            result = 'maim';
+                        }
+                        if (roll == 3 || roll == 4 || roll == 5 || roll == 6){
+                            result = 'scar';
+                        }
+                        if (roll == 7 || roll == 8 || roll == 9){
+                            result = 'lose';
                         }
                     }
-                    if (foundflag == false){
-                        char.goals.unshift(new Goal(goal.keyword, 'find'));
+
+                
+
+                    //scars
+                    if (result == 'scar'){
+                        console.log(person.name+'get scar');
+                        let repeat = false;
+                        while (repeat == false){
+                            var scarDesc = getRand(0,scars.length-1);
+                            for (cloth of person.clothing){
+                                if (cloth == scarDesc){repeat = true;}
+                            }
+                        }
+
+                        if (person.clothing.length <= 4){
+                            person.clothing[5] = scarDesc;
+                        }
+                        else{
+                            person.clothing.push(scarDesc);
+                        }
+                        let culprit = p2Final[getRand(0,p2Final.length-1)];
+                        let mem = new KeyMemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y},'I was scarred by '+culprit.name+'.', 'angry');
+                        person.keyMemories.push(mem);
+                        for (opi of person.opinions){
+                            if (opi.keyword == culprit.name){
+                                opi.affinity = opi.affinity -20;
+                                opi.familiar = true;
+                            }
+                        }
+                        
+                    }
+
+                    //maims
+                    if (result == 'maim'){
+                        console.log(person.name+'get maim');
+                        let repeat = false;
+                        while (repeat == false){
+                            var maimDesc = getRand(0,maims.length-1);
+                            for (cloth of person.clothing){
+                                if (cloth == maimDesc){repeat = true;}
+                            }
+                        }
+
+                        if (person.clothing.length <= 4){
+                            person.clothing[5] = maimDesc;
+                        }
+                        else{
+                            person.clothing.push(maimDesc);
+                        }
+                        let culprit = p2Final[getRand(0,p2Final.length-1)];
+                        let mem = new KeyMemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y},'I was maimed by '+culprit.name+'.', 'angry');
+                        person.keyMemories.push(mem);
+                        person.strength = parseInt(person.strength - (person.strength/4));
+                        for (opi of person.opinions){
+                            if (opi.keyword == culprit.name){
+                                opi.affinity = opi.affinity -40;
+                                opi.familiar = true;
+                            }
+                        }
+                        
+                    }
+
+
+                    //items lost or damaged
+                    if (result == 'lose' || roll == 2){
+                        console.log(person.name+' lose item');
+                        let roll = getRand(0,1);
+                        if (roll == 0){
+                            //lose weapon
+                            for (arti of artifacts){
+                                if (arti.name == person.weapon){
+                                    arti.loc.x = person.loc.x;
+                                    arti.loc.y = person.loc.y;
+                                    person.strength = person.strength - arti.bonus;
+                                    person.weapon = 'fists';
+                                    let culprit = p2Final[getRand(0,p2Final.length-1)];
+                                    let mem = new KeyMemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, 'I was disarmed by '+culprit.name+'.', 'angry');
+                                    person.keyMemories.push(mem);
+                                    for (opi of person.opinions){
+                                        if (opi.keyword == culprit.name){
+                                            opi.affinity = opi.affinity -20;
+                                            opi.familiar = true;
+                                        }
+                                    }
+                                }else{
+                                    person.weapon = 'fists';
+                                    let culprit = p2Final[getRand(0,p2Final.length-1)];
+                                    let mem = new KeyMemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, 'I was disarmed by '+culprit.name+'.', 'angry');
+                                    person.keyMemories.push(mem);
+                                    for (opi of person.opinions){
+                                        if (opi.keyword == culprit.name){
+                                            opi.affinity = opi.affinity -10;
+                                            opi.familiar = true;
+                                        }
+                                    }
+
+                                }
+                            }
+                        }else{
+                            let destFlag = false;
+                            //lose or damage clothing
+                            for (arti of artifacts){
+                                for (cloth of person.clothing){
+                                    if(desFlag == true){break;}
+                                    if (arti.name == cloth){
+                                        arti.loc.x = person.loc.x;
+                                        arti.loc.y = person.loc.y;
+                                        person.strength = person.strength - arti.bonus;
+                                        cloth = 'nothing';
+                                        let culprit = p2Final[getRand(0,p2Final.length-1)];
+                                        let mem = new KeyMemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, 'My '+arti.name+' was torn off of me during the fight by '+culprit.name+'.', 'angry');
+                                        person.keyMemories.push(mem);
+                                        for (opi of person.opinions){
+                                            if (opi.keyword == culprit.name){
+                                                opi.affinity = opi.affinity -20;
+                                                opi.familiar = true;
+                                            }
+                                        }
+                                        destFlag = true;
+                                    }else{
+                                        let limit = 4;
+                                        if(person.clothing.length < 4){ limit = person.clothing.length; }
+                                        let roll = getRand(0, limit-1);
+                                        let itemLost = person.clothing[roll];
+                                        person.clothing[roll] = 'damaged tatters';
+                                        let culprit = p2Final[getRand(0,p2Final.length-1)];
+                                        let mem = new KeyMemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, 'My '+itemLost+' was ruined by '+culprit.name+'.', 'angry');
+                                        person.keyMemories.push(mem);
+                                        for (opi of person.opinions){
+                                            if (opi.keyword == culprit.name){
+                                                opi.affinity = opi.affinity -10;
+                                                opi.familiar = true;
+                                            }
+                                        }
+                                        destFlag = true;
+                                    }
+                                }
+                            }
+                        }    
+                    
+                    }
+
+
+                    //calculate who dies
+                    
+                    //for humans if they die drop all their stuff. also change opinions, also key memories
+
+                    if (result == 'kill'){
+                        console.log(person.name+'gets killed');
+                        //person is from p1FInal
+                        //make everyone who knew and liked the person who died dislike the killer. also key mem
+                        let culprit = p2Final[getRand(0,p2Final.length-1)];
+                            for (guy of characters){
+                                for (opi of guy.opinions){
+                                    if (opi.keyword == person.name){
+                                        if (opi.familiar == true){
+                                            //they liked the person
+                                            if (opi.affinity >40){
+                                                for (opii of guy.opinions){
+                                                    if (opii.keyword == culprit.name){
+                                                        opii.affinity = opi.affinity -40;
+                                                        opii.familiar = true;
+                                                    }
+                                                }
+                                                mem = new KeyMemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, 'I learned that '+person.name+' was killed by '+culprit.name+'.', 'angry');
+                                                guy.keyMemories.push(mem);
+                                                //they disliked the person
+                                            }else if (opi.affinity < -40){
+                                                for (opii of guy.opinions){
+                                                    if (opii.keyword == culprit.name){
+                                                        opii.affinity = opi.affinity +30;
+                                                        opii.familiar = true;
+                                                    }
+                                                }
+                                                mem = new KeyMemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, 'I learned that '+person.name+' was killed by '+culprit.name+'.', 'happy');
+                                                guy.keyMemories.push(mem);
+                                            }else{
+                                                mem = new KeyMemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, 'I learned that '+person.name+' was killed by '+culprit.name+'.', 'sad');
+                                                guy.keyMemories.push(mem);
+                                            }
+                                        } 
+                                    }
+                                }
+                            }  
+                            //for vs human also include memories for killer
+                            
+                            killCharacter(person);
+                            p1Final = p1Final.filter(entry , entry.name != person.name);
+                    }
+                    partyRunAway(p1Final);
+                }
+
+            }
+        }
+        //human fight
+        else {
+            //theres a good chance i am adding party members to nearby and will double add them by accident.
+            let nearby = [];
+            for (character of characters){
+                if (character.loc.x == char.loc.x && character.loc.y == char.loc.y){
+                    if (character.name != char.name){
+                        nearby.push(character);   
                     }
                 }
+            }
+            let overall1 = 0;
+            let overall2 = 0;
+            
+            //choose if bystanders help
+            for (near of nearby){
+                for (opi of near){
+                    for (person of p1Party){
+                        if (opi.keyword == person.name){
+                            overall1 = overall1 + opi.affinity;
+                        }
+                    }
+                    for (person of p2Party){
+                        if (opi.keyword == person.name){
+                            overall2 = overall2 + opi.affinity;
+                        }
+                    }
+                }
+                console.log(near.name +' has affinity for p1 and p2 '+overall1+' vs '+overall2);
+                if (overall1 >= overall2){
+                    console.log(nearby.name+' joining the fight for p1 side');
+                    p1Party.push(nearby);
+                }
+                else{
+                    console.log(nearby.name+' joining the fight for p2 side');
+                    p2Party.push(nearby);
+                }
+            }
+
+            //size eachother up
+            let score1 = 0;
+            for (member of p1Party){
+                score1 = score1 + member.strength;
+                
+            }
+            let score2 = 0;
+            for (member of p2Party){
+                score1 = score1 + member.strength;
+            }
+
+            console.log (p1.name + ' party: '+score1+' vs. '+p2.name+' party: '+score2);
+            console.log(p1Party);
+            console.log(p2Party);
+            //decide if p1 runs
+            if (score1 < score2-30){
+                let roll = getRand(0,2);
+                if (roll != 2){
+                    partyRunAway(p1Party);
+                    console.log(p1Party[0].name+' p1 party decides to run away');
+                    return;
+                }else{
+                    console.log(p1.name+' party cant escape!');
+                }
+            }
+            //decide if p2 runs
+            if (score2 < score1-30){
+                let roll = getRand(0,2);
+                if (roll != 2){
+                    partyRunAway(p2Party);
+                    console.log(p2Party[0].name+' p2 party decides to run away');
+                    return;
+                }else{
+                    console.log(p2.name+' party cant escape!');
+                }
+            }
+            //fight
+
+            let roll = getRand(1,p1Party.length);
+            let p1Final = [];
+            for (i=0;i<roll;i++){
+                p1Final.push(p1Party.splice(getRand(0,p1Final.length-1),1));
+            }
+
+            roll = getRand(1,p2Party.length);
+            let p2Final = [];
+            for (i=0;i<roll;i++){
+                p2Final.push(p2Party.splice(getRand(0,p2Final.length-1),1));
+            }
+            console.log(p1Final);
+            console.log(p2FInal);
+            console.log('This round: '+p1Final+' vs '+p2Final);
+
+            score1 = 0;
+            for (member of p1Final){
+                for (i=0; i<member.strengh;i++){
+                    let roll = getRand(1,6);
+                    score1 = score1 + roll;
+                }
+            }
+            score2 = 0;
+            for (member of p2Final){
+                for (i=0; i<member.strengh;i++){
+                    let roll = getRand(1,6);
+                    score2 = score2 + roll;
+                }
+            }
+
+            //before we decide who wins, alter opinions
+            for (fighter of p1Final){
+                for (f2 of p2Final){
+                    for (opi of fighter.opinions){
+                        if (opi.keyword == f2.name){
+                            opi.familiar = true;
+                            opi.affinity = opi.affinity-10;
+                            let emotion = getEmobyStrength(fighter, f2);
+                            let mem = new KeyMemory(day, [fighter.name, f2.name], {x:fighter.loc.x,y:fighter.loc.y}, 'I fought '+f2.name+'.', emotion);
+                            fighter.keyMemories.push(mem);
+                        }
+                    }
+                }
+            }
+            for (fighter of p2Final){
+                for (f2 of p1Final){
+                    for (opi of fighter.opinions){
+                        if (opi.keyword == f2.name){
+                            opi.familiar = true;
+                            opi.affinity = opi.affinity-10;
+                            let emotion = getEmobyStrength(fighter, f2);
+                            let mem = new KeyMemory(day, [fighter.name, f2.name], {x:fighter.loc.x,y:fighter.loc.y}, 'I fought '+f2.name+'.', emotion);
+                            fighter.keyMemories.push(mem);
+                        }
+                    }
+                }
+            }
+            
+            //p1 wins ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            if (score1 >= score2){
+                fightWinner(p1Final, p2Final);
+            
+            }
+            //p2 wins //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            else{
+                fightWinner(p2Final, p1Final);
+
+            }
+        }
     }
 
     rest = function(char, goal){
         //stay put for a while
         char.actions.push(new Goal(char.name, 'skip'));
-
+        console.log(char.name+' is resting');  
         roll = getRand(1,5); //*3 for each phase
         if (roll == 1){
             char.goals.shift();
@@ -514,7 +954,8 @@ function simulate(yeers, days){
 
     checkGoals = function(char){
         //GOALS are taken care of one at a time, until deemed complete. ACTIONS are all checked each turn in order to accomplish goals.
-        goal = char.goals[0];
+        console.log(char.goals);
+        let goal = char.goals[0];
         console.log(goal);
         switch (goal.action){
             
@@ -555,9 +996,26 @@ function simulate(yeers, days){
         for (goal of char.actions){
             switch (goal.action){
                 case 'move'://///////////////////////////////////////////////
-                    
-                    let x = goal.keyword.x;
-                    let y = goal.keyword.y;
+                    let target = goal.keyword;
+                    if (containsItem(keywords, target)){
+                        //target is not a loc, but actually a keyword
+                        for (town of towns){
+                            if (town.name == target){
+                                target = town.loc;
+                                
+                            }
+                        }
+                        for (dung of Dungeons){
+                            if (dung.name == target){
+                                target = dung.loc;
+                                
+                            }
+                        }
+                    }
+                    console.log('Move called. Moving from '+char.loc.x+','+char.loc.y+' to '+target.x+','+target.y)
+
+                    let x = target.x;
+                    let y = target.y;
                     if (grid[x][y].mountain == true || grid[x][y].water == true){
                         console.log('Cant go there! '+char.name+' to '+loc.x+','+loc.y);
                     }
@@ -575,567 +1033,8 @@ function simulate(yeers, days){
 
 
                 case 'fight'://///////////////////////////////////////////////////
-                //differentiate between monster fight and human fight
-                //make sure party members are involved
-                //everyones opinions on both sides change based on their opinions of both (do this before bystander help)
-                //bystanders help vs monsters
-                //bystanders help those they really like >60
-                //once everyone is in the party and its time to fight, if one side is far lower strength than the other then they run
-                //dying has very low chance of happening unless huge strength descrepency
-                //you can add scars to clothing array starting after 4th index
-                //if character dies then dont forget to drop their stuff and call killcharacter()
-                let target = goal.keyword;
-                let monsterFight = false;
-                let p2 = undefined;
-                let p1 = undefined;
                 
-                
-                for (monster of monsters){
-                    if (monster.name = target){
-                        monsterFight = true;
-                        p1 = char;
-                        p2 = monster;
-
-                    }
-                }
-                for (monster of monsters){
-                    if (monster.name == char.name){
-                        p1 = target;
-                        p2 = char;
-                        for (dude of characters){
-                            if (dude.name == p1){
-                                p1 = dude;
-                            }
-                        }
-                    }
-                }
-
-                let p1Party = p1.party;
-                let p2Party = p2.party;
-
-                //monster fight
-                if (monsterFight == true){
-
-                    let nearby = [];
-                    for (character of characters){
-                        if (character.loc.x == char.loc.x && character.loc.y == char.loc.y){
-                            if (character.name != char.name){
-                                for (dude of char.party){
-                                    if (dude.name != character.name){
-                                        nearby.push(character);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
-                    for (near of nearby){
-                        let helping = false;
-                        for (opi of near){
-                            for (person of p1Party){
-                                if (opi.keyword == person.name){
-                                    if (opi.affinity > -20){
-                                        helping = true;
-                                    }
-                                }
-                            }
-                            
-                        }
-                        if (helping == true){
-                            console.log(person.name+' joining the fight for p1 side');
-                            p1Party.push(person);
-                        }
-                    }
-                    //size eachother up
-                    let score1 = 0;
-                    for (member of p1Party){
-                        score1 = score1 + member.strength;
-                        
-                    }
-                    let score2 = 0;
-                    for (member of p2Party){
-                        score1 = score1 + member.strength;
-                    }
-
-                    console.log (p1.name + ' party: '+score1+' vs. '+p2.name+' party: '+score2);
-                    
-                    //decide if p1 runs
-                    if (score1 < score2-30){
-                        partyRunAway(p1Party);
-                        console.log(p1Party[0].name+' running away');
-                        break;
-                    }
-                    //fight
-
-                    let roll = getRand(1,p1Party.length);
-                    let p1Final = [];
-                    for (i=0;i<roll;i++){
-                        p1Final.concat(p1Party.splice(getRand(0,p1Final.length-1),1))
-                    }
-
-                    let roll = getRand(1,p2Party.length);
-                    let p2Final = [];
-                    for (i=0;i<roll;i++){
-                        p2Final.concat(p2Party.splice(getRand(0,p2Final.length-1),1))
-                    }
-                    console.log('This round: '+p1Final+' vs '+p2Final);
-
-                    let score1 = 0;
-                    for (member of p1Final){
-                        for (i=0; i<member.strengh;i++){
-                            let roll = getRand(1,6);
-                            score1 = score1 + roll;
-                        }
-                    }
-                    let score2 = 0;
-                    for (member of p2Final){
-                        for (i=0; i<member.strengh;i++){
-                            let roll = getRand(1,6);
-                            score2 = score2 + roll;
-                        }
-                    }
-
-                    //before we decide who wins, alter opinions
-                    for (fighter of p1Final){
-                        for (f2 of p2Final){
-                            for (opi of fighter.opinions){
-                                if (opi.keyword == f2.name){
-                                    opi.familiar = true;
-                                    opi.affinity = opi.affinity-10;
-                                    let emotion = getEmobyStrength(fighter, f2);
-                                    let mem = new Keymemory(day, [fighter.name, f2.name], {x:fighter.loc.x,y:fighter.loc.y}, 'I fought '+f2.name+'.', emotion);
-                                    fighter.keyMemories.push(mem);
-                                }
-                            }
-                        }
-                    }
-                    
-                    //p1 wins
-                    if (score1 >= score2){
-
-                        
-                        for (guy1 of p1Final){
-                            for (guy2 of p2Final){
-                                let mem = new Keymemory(day, [guy1.name, guy2.name], {x:guy1.loc.x,y:guy1.loc.y}, 'I defeated '+guy2.name+'.', 'happy');
-                                guy1.keyMemories.push(mem);
-                            }
-                        }
-
-                        //calculate who dies
-                        //for monsters its everyone
-                        //for humans if they die drop all their stuff. also change opinions, also key memories
-                        for (monster of p2Final){
-                            guy.loc.x = 0;
-                            guy.loc.y = 0;
-                            killCharacter(monster);
-                        }
-
-                        //partyRunAway(p2Final);
-
-                    }
-                    //p2 wins
-                    else{
-
-                        for (guy1 of p2Final){
-                            for (guy2 of p1Final){
-                                let mem = new Keymemory(day, [guy1.name, guy2.name], {x:guy1.loc.x,y:guy1.loc.y}, 'I was defeated by '+guy2.name+'.', 'scared');
-                                guy1.keyMemories.push(mem);
-                                for (opi of guy2.opinions){
-                                    if (opi.keyword == guy1.name){
-                                        opi.affinity = opi.affinity-20;
-                                    }
-                                }
-                            }
-                        }
-                        
-
-                        
-                        //at a minimum characters should get scarred or maimed
-                        //small chance to drop artifact or clothing item as well. add key mems
-                        for ( person of p1Final){
-                        
-                            let result = 'scar';
-
-                            if (score2 > score1+100){
-                                let roll = getRand(0, 9);
-                                if (roll < 5){
-                                    result = 'kill';
-                                }else{
-                                    result = 'maim';
-                                }
-
-                            }else{
-                                let roll = getRand(0,9);
-                                if (roll == 0){
-                                    result = 'kill';
-                                }
-                                if (roll == 1 || roll == 2){
-                                    result = 'maim';
-                                }
-                                if (roll == 3 || roll == 4 || roll == 5 || roll == 6){
-                                    result = 'scar';
-                                }
-                                if (roll == 7 || roll == 8 || roll == 9){
-                                    result = 'lose';
-                                }
-                            }
-
-                        
-
-                            //scars
-                            if (result == 'scar'){
-                                
-                                let repeat = false;
-                                while (repeat == false){
-                                    var scarDesc = getRand(0,scars.length-1);
-                                    for (cloth of person.clothing){
-                                        if (cloth == scarDesc){repeat = true;}
-                                    }
-                                }
-
-                                if (person.clothing.length <= 4){
-                                    person.clothing[5] = scarDesc;
-                                }
-                                else{
-                                    person.clothing.push(scarDesc);
-                                }
-                                let culprit = p2Final[getRand(0,p2Final.length-1)];
-                                let mem = new Keymemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, person.name+' was scarred by '+culprit.name+'.', 'angry');
-                                person.keyMemories.push(mem);
-                                for (opi of person.opinions){
-                                    if (opi.keyword == culprit.name){
-                                        opi.affinity = opi.affinity -20;
-                                        opi.familiar = true;
-                                    }
-                                }
-                                
-                            }
-
-                            //maims
-                            if (result == 'maim'){
-                               
-                                let repeat = false;
-                                while (repeat == false){
-                                    var maimDesc = getRand(0,maims.length-1);
-                                    for (cloth of person.clothing){
-                                        if (cloth == maimDesc){repeat = true;}
-                                    }
-                                }
-
-                                if (person.clothing.length <= 4){
-                                    person.clothing[5] = maimDesc;
-                                }
-                                else{
-                                    person.clothing.push(maimDesc);
-                                }
-                                let culprit = p2Final[getRand(0,p2Final.length-1)];
-                                let mem = new Keymemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y},'I was maimed by '+culprit.name+'.', 'angry');
-                                person.keyMemories.push(mem);
-                                person.strength = parseInt(person.strength - (person.strength/4));
-                                for (opi of person.opinions){
-                                    if (opi.keyword == culprit.name){
-                                        opi.affinity = opi.affinity -40;
-                                        opi.familiar = true;
-                                    }
-                                }
-                                
-                            }
-
-
-                            //items lost or damaged
-                            if (result == 'lose' || roll == 2){
-                                
-                                let roll = getRand(0,1);
-                                if (roll == 0){
-                                    //lose weapon
-                                    for (arti of artifacts){
-                                        if (arti.name == person.weapon){
-                                            arti.loc.x = person.loc.x;
-                                            arti.loc.y = person.loc.y;
-                                            person.strength = person.strength - arti.bonus;
-                                            person.weapon = 'fists';
-                                            let culprit = p2Final[getRand(0,p2Final.length-1)];
-                                            let mem = new Keymemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, 'I was disarmed by '+culprit.name+'.', 'angry');
-                                            person.keyMemories.push(mem);
-                                            for (opi of person.opinions){
-                                                if (opi.keyword == culprit.name){
-                                                    opi.affinity = opi.affinity -20;
-                                                    opi.familiar = true;
-                                                }
-                                            }
-                                        }else{
-                                            person.weapon = 'fists';
-                                            let culprit = p2Final[getRand(0,p2Final.length-1)];
-                                            let mem = new Keymemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, 'I was disarmed by '+culprit.name+'.', 'angry');
-                                            person.keyMemories.push(mem);
-                                            for (opi of person.opinions){
-                                                if (opi.keyword == culprit.name){
-                                                    opi.affinity = opi.affinity -10;
-                                                    opi.familiar = true;
-                                                }
-                                            }
-
-                                        }
-                                    }
-                                }else{
-                                    let destFlag = false;
-                                    //lose or damage clothing
-                                    for (arti of artifacts){
-                                        for (cloth of person.clothing){
-                                            if(desFlag == true){break;}
-                                            if (arti.name == cloth){
-                                                arti.loc.x = person.loc.x;
-                                                arti.loc.y = person.loc.y;
-                                                person.strength = person.strength - arti.bonus;
-                                                cloth = 'nothing';
-                                                let culprit = p2Final[getRand(0,p2Final.length-1)];
-                                                let mem = new Keymemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, 'My '+arti.name+' was torn off of me during the fight by '+culprit.name+'.', 'angry');
-                                                person.keyMemories.push(mem);
-                                                for (opi of person.opinions){
-                                                    if (opi.keyword == culprit.name){
-                                                        opi.affinity = opi.affinity -20;
-                                                        opi.familiar = true;
-                                                    }
-                                                }
-                                                destFlag = true;
-                                            }else{
-                                                let limit = 4;
-                                                if(person.clothing.length < 4){ limit = person.clothing.length; }
-                                                let roll = getRand(0, limit-1);
-                                                let itemLost = person.clothing[roll];
-                                                person.clothing[roll] = 'damaged tatters';
-                                                let culprit = p2Final[getRand(0,p2Final.length-1)];
-                                                let mem = new Keymemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, 'My '+itemLost+' was ruined by '+culprit.name+'.', 'angry');
-                                                person.keyMemories.push(mem);
-                                                for (opi of person.opinions){
-                                                    if (opi.keyword == culprit.name){
-                                                        opi.affinity = opi.affinity -10;
-                                                        opi.familiar = true;
-                                                    }
-                                                }
-                                                destFlag = true;
-                                            }
-                                        }
-                                    }
-                                }    
-                            
-                            }
-
-
-                            //calculate who dies
-                           
-                            //for humans if they die drop all their stuff. also change opinions, also key memories
-
-                            if (result == 'kill'){
-                                
-                                //person is from p1FInal
-                                //make everyone who knew and liked the person who died dislike the killer. also key mem
-                                let culprit = p2Final[getRand(0,p2Final.length-1)];
-                                    for (guy of characters){
-                                        for (opi of guy.opinions){
-                                            if (opi.keyword == person.name){
-                                                if (opi.familiar == true){
-                                                    //they liked the person
-                                                    if (opi.affinity >40){
-                                                        for (opii of guy.opinions){
-                                                            if (opii.keyword == culprit.name){
-                                                                opii.affinity = opi.affinity -40;
-                                                                opii.familiar = true;
-                                                            }
-                                                        }
-                                                        mem = new Keymemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, 'I learned that '+person.name+' was killed by '+culprit.name+'.', 'angry');
-                                                        guy.keyMemories.push(mem);
-                                                        //they disliked the person
-                                                    }else if (opi.affinity < -40){
-                                                        for (opii of guy.opinions){
-                                                            if (opii.keyword == culprit.name){
-                                                                opii.affinity = opi.affinity +30;
-                                                                opii.familiar = true;
-                                                            }
-                                                        }
-                                                        mem = new Keymemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, 'I learned that '+person.name+' was killed by '+culprit.name+'.', 'happy');
-                                                        guy.keyMemories.push(mem);
-                                                    }
-                                                } 
-                                            }
-                                        }
-                                    }  
-                                    //for vs human also include memories for killer
-                                    
-                                    killCharacter(person);
-                                    p1Final = p1Final.filter(entry , entry.name != person.name);
-                            }
-                            partyRunAway(p1Final);
-                        }
-
-                    }
-                }
-                //human fight
-                else {
-                    //theres a good chance i am adding party members to nearby and will double add them by accident.
-                    let nearby = [];
-                    for (character of characters){
-                        if (character.loc.x == char.loc.x && character.loc.y == char.loc.y){
-                            if (character.name != char.name){
-                                for (dude of char.party){
-                                    if (dude.name != character.name){
-                                        nearby.push(character);
-                                    }
-                                }
-                               
-                            }
-                        }
-                    }
-                    let overall1 = 0;
-                    let overall2 = 0;
-                    
-                    //choose if bystanders help
-                    for (near of nearby){
-                        let join = false;
-                        for (opi of near){
-                            for (person of p1Party){
-                                if (opi.keyword == person.name){
-                                    overall1 = overall1 + opi.affinity;
-                                }
-                            }
-                            for (person of p2Party){
-                                if (opi.keyword == person.name){
-                                    overall2 = overall2 + opi.affinity;
-                                }
-                            }
-                        }
-                        if (overall1 >= overall2){
-                            for (opi of near){
-                                for (person of p1Party){
-                                    if (opi.keyword == person.name){
-                                        if (opi.affinity>60){
-                                            join = true;
-                                        }
-                                    }
-                                }
-                            }
-                            if (join == true){
-                                console.log(nearby.name+' joining the fight for p1 side');
-                                p1Party.push(nearby);
-                            }
-                            
-                        }
-                        else{
-                            for (opi of near){
-                                for (person of p2Party){
-                                    if (opi.keyword == person.name){
-                                        if (opi.affinity>60){
-                                            join = true;
-                                        }
-                                    }
-                                }
-                            }
-                            if (join == true){
-                                console.log(nearby.name+' joining the fight for p2 side');
-                                p2Party.push(nearby);
-                            }
-                        }
-                    }
-
-                    //size eachother up
-                    let score1 = 0;
-                    for (member of p1Party){
-                        score1 = score1 + member.strength;
-                        
-                    }
-                    let score2 = 0;
-                    for (member of p2Party){
-                        score1 = score1 + member.strength;
-                    }
-
-                    console.log (p1.name + ' party: '+score1+' vs. '+p2.name+' party: '+score2);
-                    
-                    //decide if p1 runs
-                    if (score1 < score2-30){
-                        partyRunAway(p1Party);
-                        console.log(p1Party[0].name+' party running away');
-                        break;
-                    }
-                    //decide if p2 runs
-                    if (score2 < score1-30){
-                        partyRunAway(p2Party);
-                        console.log(p2Party[0].name+' party running away');
-                        break;
-                    }
-                    //fight
-
-                    let roll = getRand(1,p1Party.length);
-                    let p1Final = [];
-                    for (i=0;i<roll;i++){
-                        p1Final.push(p1Party.splice(getRand(0,p1Final.length-1),1))
-                    }
-
-                    let roll = getRand(1,p2Party.length);
-                    let p2Final = [];
-                    for (i=0;i<roll;i++){
-                        p2Final.push(p2Party.splice(getRand(0,p2Final.length-1),1))
-                    }
-                    console.log(p1Final);
-                    console.log(p2FInal);
-                    console.log('This round: '+p1Final+' vs '+p2Final);
-
-                    let score1 = 0;
-                    for (member of p1Final){
-                        for (i=0; i<member.strengh;i++){
-                            let roll = getRand(1,6);
-                            score1 = score1 + roll;
-                        }
-                    }
-                    let score2 = 0;
-                    for (member of p2Final){
-                        for (i=0; i<member.strengh;i++){
-                            let roll = getRand(1,6);
-                            score2 = score2 + roll;
-                        }
-                    }
-
-                    //before we decide who wins, alter opinions
-                    for (fighter of p1Final){
-                        for (f2 of p2Final){
-                            for (opi of fighter.opinions){
-                                if (opi.keyword == f2.name){
-                                    opi.familiar = true;
-                                    opi.affinity = opi.affinity-10;
-                                    let emotion = getEmobyStrength(fighter, f2);
-                                    let mem = new Keymemory(day, [fighter.name, f2.name], {x:fighter.loc.x,y:fighter.loc.y}, 'I fought '+f2.name+'.', emotion);
-                                    fighter.keyMemories.push(mem);
-                                }
-                            }
-                        }
-                    }
-                    for (fighter of p2Final){
-                        for (f2 of p1Final){
-                            for (opi of fighter.opinions){
-                                if (opi.keyword == f2.name){
-                                    opi.familiar = true;
-                                    opi.affinity = opi.affinity-10;
-                                    let emotion = getEmobyStrength(fighter, f2);
-                                    let mem = new Keymemory(day, [fighter.name, f2.name], {x:fighter.loc.x,y:fighter.loc.y}, 'I fought '+f2.name+'.', emotion);
-                                    fighter.keyMemories.push(mem);
-                                }
-                            }
-                        }
-                    }
-                    
-                    //p1 wins ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                    if (score1 >= score2){
-
-                        fightWinner(p1Final, p2Final);
-                    
-                    }
-                    //p2 wins //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-                    else{
-                        fightWinner(p2Final, p1Final);
-
-                    }
-                }
-                
-                console.log(char.name+' is skipping turn');
+                fight(char, goal);
                 break;
 
                 case 'ask'://///////////////////////////////////////////////////
@@ -1143,7 +1042,7 @@ function simulate(yeers, days){
                 // person doesnt help if they dont like the asker, or if unfamiliar
                     
                 let nearby = [];
-                let target = goal.keyword;
+                target = goal.keyword;
                 for (character of characters){
                     if (character.loc.x == char.loc.x && character.loc.y == char.loc.y){
                         if (character.name != char.name){
@@ -1153,7 +1052,7 @@ function simulate(yeers, days){
                 }
 
                 //select who to ask
-                let roll = getRand(2,10);
+                roll = getRand(2,10);
                 let timeAsk = 1;
                 if (roll < nearby.length){
                     timeAsk = roll;
@@ -1166,11 +1065,11 @@ function simulate(yeers, days){
 
                     //ask about target
                     let emotion = getEmo(getAff(char, toAsk.name));
-                    let mem = new Keymemory(day, [char.name, toAsk.name], {x:char.loc.x,y:char.loc.y}, 'I asked if '+toAsk.name+' could help me find '+target.name+'.', emotion);
+                    let mem = new KeyMemory(day, [char.name, toAsk.name], {x:char.loc.x,y:char.loc.y}, 'I asked if '+toAsk.name+' could help me find '+target.name+'.', emotion);
                     char.keyMemories.push(mem); 
 
                     emotion = getEmo(getAff(toAsk, char.name));
-                    mem = new Keymemory(day, [char.name, toAsk.name], {x:toAsk.loc.x,y:toAsk.loc.y}, char.name+' asked if I could help them find '+target.name+'.', emotion);
+                    mem = new KeyMemory(day, [char.name, toAsk.name], {x:toAsk.loc.x,y:toAsk.loc.y}, char.name+' asked if I could help them find '+target.name+'.', emotion);
                     toAsk.keyMemories.push(mem);
                     
                     //give directions if target knows about target (might switch this to has key memory about target within a certain amount of time)
@@ -1178,10 +1077,10 @@ function simulate(yeers, days){
                         if (fam.familiar == true && fam.keyword == target.name){
                             let score = getAff(toAsk, char.name);
                             if (score >-40){
-                                mem = new Keymemory(day, [char.name, toAsk.name], {x:char.loc.x,y:char.loc.y}, toAsk.name+' told me where to find '+target.name+'.', 'happy');
+                                mem = new KeyMemory(day, [char.name, toAsk.name], {x:char.loc.x,y:char.loc.y}, toAsk.name+' told me where to find '+target.name+'.', 'happy');
                                 char.keyMemories.push(mem); 
     
-                                mem = new Keymemory(day, [char.name, toAsk.name], {x:toAsk.loc.x,y:toAsk.loc.y}, 'I told '+char.name+' where to find '+target.name+'.', 'happy');
+                                mem = new KeyMemory(day, [char.name, toAsk.name], {x:toAsk.loc.x,y:toAsk.loc.y}, 'I told '+char.name+' where to find '+target.name+'.', 'happy');
                                 toAsk.keyMemories.push(mem);
 
                                 char.goals.unshift(new Goal(target.loc, 'travel'));
@@ -1199,7 +1098,7 @@ function simulate(yeers, days){
                     break;
 
                 default:
-                    console.log('goal action work. action: '+goal.action);
+                    console.log('goal action didnt work. action: '+goal.action);
             }
         }
         char.actions = [];
@@ -1209,14 +1108,14 @@ function simulate(yeers, days){
         //when paramater 1 beats parameter 2, here are the consequences
         for (guy2 of p2Final){
             for (guy1 of p1Final){
-                let mem = new Keymemory(day, [guy1.name, guy2.name], {x:guy2.loc.x,y:guy2.loc.y}, 'I defeated '+guy1.name+'.', 'happy');
+                let mem = new KeyMemory(day, [guy1.name, guy2.name], {x:guy2.loc.x,y:guy2.loc.y}, 'I defeated '+guy1.name+'.', 'happy');
                 guy2.keyMemories.push(mem);
             }
         }
         
         for (guy1 of p1Final){
             for (guy2 of p2Final){
-                let mem = new Keymemory(day, [guy1.name, guy2.name], {x:guy1.loc.x,y:guy1.loc.y}, 'I was defeated by '+guy2.name+'.', 'scared');
+                let mem = new KeyMemory(day, [guy1.name, guy2.name], {x:guy1.loc.x,y:guy1.loc.y}, 'I was defeated by '+guy2.name+'.', 'scared');
                 guy1.keyMemories.push(mem);
                 for (opi of guy1.opinions){
                     if (opi.keyword == guy2.name){
@@ -1226,7 +1125,6 @@ function simulate(yeers, days){
             }
         }
         
-
         for (person of p1Final){
         
             let result = 'scar';
@@ -1255,8 +1153,6 @@ function simulate(yeers, days){
                 }
             }
 
-        
-
             //scars
             if (result == 'scar'){
                 
@@ -1275,9 +1171,9 @@ function simulate(yeers, days){
                     person.clothing.push(scarDesc);
                 }
                 let culprit = p2Final[getRand(0,p2Final.length-1)];
-                let mem = new Keymemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, 'I was scarred by '+culprit.name+'.', 'angry');
+                let mem = new KeyMemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, 'I was scarred by '+culprit.name+'.', 'angry');
                 person.keyMemories.push(mem);
-                mem = new Keymemory(day, [person.name, culprit.name], {x:culprit.loc.x,y:culprit.loc.y}, 'I left a scar on '+person.name+'.', 'indifferent');
+                mem = new KeyMemory(day, [person.name, culprit.name], {x:culprit.loc.x,y:culprit.loc.y}, 'I left a scar on '+person.name+'.', 'indifferent');
                 culprit.keyMemories.push(mem);
                 for (opi of person.opinions){
                     if (opi.keyword == culprit.name){
@@ -1285,7 +1181,24 @@ function simulate(yeers, days){
                         opi.familiar = true;
                     }
                 }
-                
+                for (guy of characters){
+                    for (rel of guy.relations){
+                        if (rel.keyword == person.name){
+                            if (rel.relation == 'mother' || rel.relation == 'father' ||rel.relation == 'child' ||rel.relation == 'family' || rel.relation == 'married'){
+                                for (opii of guy.opinions){
+                                    if (opii.keyword == culprit.name){
+                                        opii.affinity = opi.affinity -20;
+                                        opii.familiar = true;
+                                    }
+                                }
+                                let relTitle = rel.relation;
+                                if (relTitle == 'family'){ relTitle = 'family member';}
+                                mem = new KeyMemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, 'I learned that my '+relTitle+' was hurt.', 'sad');
+                                guy.keyMemories.push(mem);
+                            }
+                        }
+                    }
+                }
             }
 
             //maims
@@ -1306,9 +1219,9 @@ function simulate(yeers, days){
                     person.clothing.push(maimDesc);
                 }
                 let culprit = p2Final[getRand(0,p2Final.length-1)];
-                let mem = new Keymemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y},'I was maimed by '+culprit.name+'.', 'angry');
+                let mem = new KeyMemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y},'I was maimed by '+culprit.name+'.', 'angry');
                 person.keyMemories.push(mem);
-                mem = new Keymemory(day, [person.name, culprit.name], {x:culprit.loc.x,y:culprit.loc.y},'I maimed '+person.name+'.', 'disgusted');
+                mem = new KeyMemory(day, [person.name, culprit.name], {x:culprit.loc.x,y:culprit.loc.y},'I maimed '+person.name+'.', 'disgusted');
                 culprit.keyMemories.push(mem);
                 person.strength = parseInt(person.strength - (person.strength/4));
                 for (opi of person.opinions){
@@ -1317,9 +1230,25 @@ function simulate(yeers, days){
                         opi.familiar = true;
                     }
                 }
-                
+                for (guy of characters){
+                    for (rel of guy.relations){
+                        if (rel.keyword == person.name){
+                            if (rel.relation == 'mother' || rel.relation == 'father' ||rel.relation == 'child' ||rel.relation == 'family' || rel.relation == 'married'){
+                                for (opii of guy.opinions){
+                                    if (opii.keyword == culprit.name){
+                                        opii.affinity = opi.affinity -30;
+                                        opii.familiar = true;
+                                    }
+                                }
+                                let relTitle = rel.relation;
+                                if (relTitle == 'family'){ relTitle = 'family member';}
+                                mem = new KeyMemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, 'I learned that my '+relTitle+' was maimed.', 'sad');
+                                guy.keyMemories.push(mem);
+                            }
+                        }
+                    }
+                }
             }
-
 
             //items lost or damaged
             if (result == 'lose' || roll == 2){
@@ -1334,9 +1263,9 @@ function simulate(yeers, days){
                             person.strength = person.strength - arti.bonus;
                             person.weapon = 'fists';
                             let culprit = p2Final[getRand(0,p2Final.length-1)];
-                            let mem = new Keymemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, 'I was disarmed by '+culprit.name+'.', 'angry');
+                            let mem = new KeyMemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, 'I was disarmed by '+culprit.name+'.', 'angry');
                             person.keyMemories.push(mem);
-                            mem = new Keymemory(day, [person.name, culprit.name], {x:culprit.loc.x,y:culprit.loc.y}, 'I  disarmed '+person.name+'.', 'happy');
+                            mem = new KeyMemory(day, [person.name, culprit.name], {x:culprit.loc.x,y:culprit.loc.y}, 'I  disarmed '+person.name+'.', 'happy');
                             culprit.keyMemories.push(mem);
                             for (opi of person.opinions){
                                 if (opi.keyword == culprit.name){
@@ -1347,9 +1276,9 @@ function simulate(yeers, days){
                         }else{
                             person.weapon = 'fists';
                             let culprit = p2Final[getRand(0,p2Final.length-1)];
-                            let mem = new Keymemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, 'I was disarmed by '+culprit.name+'.', 'angry');
+                            let mem = new KeyMemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, 'I was disarmed by '+culprit.name+'.', 'angry');
                             person.keyMemories.push(mem);
-                            mem = new Keymemory(day, [person.name, culprit.name], {x:culprit.loc.x,y:culprit.loc.y}, 'I  disarmed '+person.name+'.', 'happy');
+                            mem = new KeyMemory(day, [person.name, culprit.name], {x:culprit.loc.x,y:culprit.loc.y}, 'I  disarmed '+person.name+'.', 'happy');
                             culprit.keyMemories.push(mem);
                             for (opi of person.opinions){
                                 if (opi.keyword == culprit.name){
@@ -1372,9 +1301,9 @@ function simulate(yeers, days){
                                 person.strength = person.strength - arti.bonus;
                                 cloth = 'nothing';
                                 let culprit = p2Final[getRand(0,p2Final.length-1)];
-                                let mem = new Keymemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, 'My '+arti.name+' was torn off of me during the fight by '+culprit.name+'.', 'angry');
+                                let mem = new KeyMemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, 'My '+arti.name+' was torn off of me during the fight by '+culprit.name+'.', 'angry');
                                 person.keyMemories.push(mem);
-                                mem = new Keymemory(day, [person.name, culprit.name], {x:culprit.loc.x,y:culprit.loc.y}, 'I made '+person.name+' drop their '+arti.name+'.', 'happy');
+                                mem = new KeyMemory(day, [person.name, culprit.name], {x:culprit.loc.x,y:culprit.loc.y}, 'I made '+person.name+' drop their '+arti.name+'.', 'happy');
                                 culprit.keyMemories.push(mem);
                                 for (opi of person.opinions){
                                     if (opi.keyword == culprit.name){
@@ -1390,9 +1319,9 @@ function simulate(yeers, days){
                                 lostItem = person.clothing[roll];
                                 person.clothing[roll] = 'damaged tatters';
                                 let culprit = p2Final[getRand(0,p2Final.length-1)];
-                                let mem = new Keymemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, 'My '+lostItem+' was ruined by '+culprit.name+'.', 'angry');
+                                let mem = new KeyMemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, 'My '+lostItem+' was ruined by '+culprit.name+'.', 'angry');
                                 person.keyMemories.push(mem);
-                                mem = new Keymemory(day, [person.name, culprit.name], {x:culprit.loc.x,y:culprit.loc.y}, 'I destroyed '+person.name+'s '+lostItem+'.', 'happy');
+                                mem = new KeyMemory(day, [person.name, culprit.name], {x:culprit.loc.x,y:culprit.loc.y}, 'I destroyed '+person.name+'s '+lostItem+'.', 'happy');
                                 culprit.keyMemories.push(mem);
                                 for (opi of person.opinions){
                                     if (opi.keyword == culprit.name){
@@ -1405,12 +1334,9 @@ function simulate(yeers, days){
                         }
                     }
                 }    
-            
             }
 
-
             //calculate who dies
-           
             //for humans if they die drop all their stuff. also change opinions, also key memories
 
             if (result == 'kill'){
@@ -1419,7 +1345,7 @@ function simulate(yeers, days){
                 let culprit = p2Final[getRand(0,p2Final.length-1)];
 
                 //killer remembers killing them
-                mem = new Keymemory(day, [person.name, culprit.name], {x:culprit.loc.x,y:culprit.loc.y}, 'I killed '+person.name+'.', 'indifferent');
+                mem = new KeyMemory(day, [person.name, culprit.name], {x:culprit.loc.x,y:culprit.loc.y}, 'I killed '+person.name+'.', 'indifferent');
                 culprit.keyMemories.push(mem);
 
                 //people dont want to kill them now hopefully
@@ -1443,7 +1369,7 @@ function simulate(yeers, days){
                                             opii.familiar = true;
                                         }
                                     }
-                                    mem = new Keymemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, 'I learned that '+person.name+' was killed by '+culprit.name+'.', 'angry');
+                                    mem = new KeyMemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, 'I learned that '+person.name+' was killed by '+culprit.name+'.', 'angry');
                                     guy.keyMemories.push(mem);
                                     //they disliked the person
                                 }else if (opi.affinity < -40){
@@ -1453,10 +1379,26 @@ function simulate(yeers, days){
                                             opii.familiar = true;
                                         }
                                     }
-                                    mem = new Keymemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, 'I learned that '+person.name+' was killed by '+culprit.name+'.', 'happy');
+                                    mem = new KeyMemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, 'I learned that '+person.name+' was killed by '+culprit.name+'.', 'happy');
                                     guy.keyMemories.push(mem);
                                 }
                             } 
+                        }
+                    }
+                    for (rel of guy.relations){
+                        if (rel.keyword == person.name){
+                            if (rel.relation == 'mother' || rel.relation == 'father' ||rel.relation == 'child' ||rel.relation == 'family' || rel.relation == 'married'){
+                                for (opii of guy.opinions){
+                                    if (opii.keyword == culprit.name){
+                                        opii.affinity = opi.affinity -40;
+                                        opii.familiar = true;
+                                    }
+                                }
+                                let relTitle = rel.relation;
+                                if (relTitle == 'family'){ relTitle = 'family member';}
+                                mem = new KeyMemory(day, [person.name, culprit.name], {x:person.loc.x,y:person.loc.y}, 'I learned that my '+relTitle+' was killed.', 'sad');
+                                guy.keyMemories.push(mem);
+                            }
                         }
                     }
                 } 
@@ -1484,11 +1426,8 @@ function simulate(yeers, days){
         for (i=0;i<roll;i++){
             talktoNearby(char);
         }
-        
-        
-        
+    
     }
-
 
     spreadMonster = function(mon){
     }
@@ -1498,7 +1437,7 @@ function simulate(yeers, days){
     }
 
     killCharacter = function(character, peopleNearby=[character.name]){
-
+        console.log('cleaning up and killing data for '+character.name);
         //everyone that knows this person gets a key memory about their death 
         let place = {x:character.loc.x, y:character.loc.y};
         for (char of characters){
@@ -1566,8 +1505,9 @@ function simulate(yeers, days){
     }
 
     transformToLegend = function(character){
-
+        console.log('transforming '+character.name+' to a legend');
         legends.push(character.name);
+        //no way this splice works right
         adventurers.splice(character.name,1);
 
         let clothing = [];
@@ -1606,10 +1546,10 @@ function simulate(yeers, days){
 
     pickupArtifact = function(char){
         //pick up artifacts and equip it
-        let pickup = true;
+        let pickup = false;
         for (artifact of artifacts){
             if (artifact.loc.x == char.loc.x && artifact.loc.y == char.loc.y && artifact.loc.x != 0 && artifact.loc.y != 0){
-                let mem = new Keymemory(day, [char.name], {x:char.loc.x,y:char.loc.y}, 'I found the '+artifact.name, 'happy');
+                let mem = new KeyMemory(day, [char.name], {x:char.loc.x,y:char.loc.y}, 'I found the '+artifact.name, 'happy');
                 char.keyMemories.push(mem);
 
                 //remove find goal
@@ -1638,12 +1578,11 @@ function simulate(yeers, days){
                                 arti.loc.y = char.loc.y;
                                 artifact.loc.x = 0; //picked it up
                                 artifact.loc.y = 0;
-                                
+                                pickup = true;
                             }
-                            else {pickup=false;}
                         }
                     }
-                    if (pickup == true){
+                    if (pickup == false){
                         char.weapon = artifact.name;
                         char.strength = char.strength + artifact.bonus;
                         artifact.loc.x = 0; //picked it up
@@ -1666,11 +1605,12 @@ function simulate(yeers, days){
                                     arti.loc.y = char.loc.y;
                                     artifact.loc.x = 0; //picked it up
                                     artifact.loc.y = 0;
+                                    pickup = true;
                                 }
-                                else {pickup=false;}
+                            
                             }
                         }
-                        if (pickup == true){
+                        if (pickup == false){
                             char.clothing[0] = artifact.name;
                             char.strength = char.strength + artifact.bonus;
                             artifact.loc.x = 0; //picked it up
@@ -1689,11 +1629,12 @@ function simulate(yeers, days){
                                     arti.loc.y = char.loc.y;
                                     artifact.loc.x = 0; //picked it up
                                     artifact.loc.y = 0;
+                                    pickup = true;
                                 }
-                                else {pickup=false;}
+                               
                             }
                         }
-                        if (pickup == true){
+                        if (pickup == false){
                             char.clothing[1] = artifact.name;
                             char.strength = char.strength + artifact.bonus;
                             artifact.loc.x = 0; //picked it up
@@ -1713,11 +1654,12 @@ function simulate(yeers, days){
                                     arti.loc.y = char.loc.y;
                                     artifact.loc.x = 0; //picked it up
                                     artifact.loc.y = 0;
+                                    pickup = true;
                                 }
-                                else {pickup=false;}
+                                
                             }
                         }
-                        if (pickup == true){
+                        if (pickup == false){
                             char.clothing[3] = artifact.name;
                             char.strength = char.strength + artifact.bonus;
                             artifact.loc.x = 0; //picked it up
@@ -1737,11 +1679,12 @@ function simulate(yeers, days){
                                     arti.loc.y = char.loc.y;
                                     artifact.loc.x = 0; //picked it up
                                     artifact.loc.y = 0;
+                                    pickup = true;
                                 }
-                                else {pickup=false;}
+                               
                             }
                         }
-                        if (pickup == true){
+                        if (pickup == false){
                             char.clothing[4] = artifact.name;
                             char.strength = char.strength + artifact.bonus;
                             artifact.loc.x = 0; //picked it up
@@ -1758,15 +1701,15 @@ function simulate(yeers, days){
         let nearby = [];
         for (character of characters){
             if (character.loc.x == me.loc.x && character.loc.y == me.loc.y){
-                if (me.party.find(character.name)){
-                    if (character.name != me.name && character.strength){
-                        nearby.push(character);
-                    }
-                } else {
-                    if (character.name != me.name && character.strength > me.strength-100){
+                for (partyMem of me.party){
+                    if (character.name != me.name){
                         nearby.push(character);
                     }
                 }
+                if (character.name != me.name && character.strength > me.strength-100){
+                    nearby.push(character);
+                }
+                
             }
         }
         if (nearby.length > 0){
@@ -1805,10 +1748,11 @@ function simulate(yeers, days){
                     //if (target is player){talk to them} <== come back and do this eventually
 
                     let emotion = getEmo(getAff(me, target.name));
-                    mem = new Keymemory(day, [me.name, target.name], {x:me.loc.x,y:me.loc.y}, 'I talked to '+target.name, emotion);
+                    mem = new KeyMemory(day, [me.name, target.name], {x:me.loc.x,y:me.loc.y}, 'I talked to '+target.name, emotion);
                     me.keyMemories.push(mem); 
-                    let emotion = getEmo(getAff(target, me.name));
-                    mem = new Keymemory(day, [target.name, me.name], {x:target.loc.x,y:target.loc.y}, 'I talked to '+me.name, emotion);
+                    console.log(me.name+' talked to '+target.name);
+                    emotion = getEmo(getAff(target, me.name));
+                    mem = new KeyMemory(day, [target.name, me.name], {x:target.loc.x,y:target.loc.y}, 'I talked to '+me.name, emotion);
                     target.keyMemories.push(mem); 
 
                 }
@@ -1849,10 +1793,10 @@ function simulate(yeers, days){
                     //if (target is player){talk to them} <== come back and do this eventually
 
                     let emotion = getEmo(getAff(me, target.name));
-                    mem = new Keymemory(day, [me.name, target.name], {x:me.loc.x,y:me.loc.y}, 'I met '+target.name, emotion);
+                    mem = new KeyMemory(day, [me.name, target.name], {x:me.loc.x,y:me.loc.y}, 'I met '+target.name, emotion);
                     me.keyMemories.push(mem); 
-                    let emotion = getEmo(getAff(target, me.name));
-                    mem = new Keymemory(day, [target.name, me.name], {x:target.loc.x,y:target.loc.y}, 'I met '+me.name, emotion);
+                    emotion = getEmo(getAff(target, me.name));
+                    mem = new KeyMemory(day, [target.name, me.name], {x:target.loc.x,y:target.loc.y}, 'I met '+me.name, emotion);
                     target.keyMemories.push(mem); 
 
                 }
@@ -1866,17 +1810,6 @@ function simulate(yeers, days){
             
         }
 
-    }
-
-    getbig8 = function(){
-        let big = [];
-        
-        for (c in characters){
-            big.push(c);
-            sortArr(big);
-            if (big.length>8){big.pop();}
-        }
-        return big;
     }
 
     famwith8 = function(char){
@@ -1924,7 +1857,7 @@ function simulate(yeers, days){
                 //weapon
                 if (near.weapon == artifact.name){
                     if (isFamiliar(me, near.name)){
-                        mem = new Keymemory(day, [me.name, near.name], {x:me.loc.x,y:me.loc.y}, 'I saw '+near.name+' with the '+near.weapon, 'surprised');
+                        mem = new KeyMemory(day, [me.name, near.name], {x:me.loc.x,y:me.loc.y}, 'I saw '+near.name+' with the '+near.weapon, 'surprised');
                         me.keyMemories.push(mem);
                         for (op of char.opinions){
                             if (op.keyword == artifact.name){
@@ -1934,7 +1867,7 @@ function simulate(yeers, days){
                         }
                     }
                     else{
-                        mem = new Keymemory(day, [me.name, 'a stranger'], {x:me.loc.x,y:me.loc.y}, 'I saw a stranger with the '+near.weapon, 'surprised');
+                        mem = new KeyMemory(day, [me.name, 'a stranger'], {x:me.loc.x,y:me.loc.y}, 'I saw a stranger with the '+near.weapon, 'surprised');
                         me.keyMemories.push(mem);
                         for (op of char.opinions){
                             if (op.keyword == artifact.name){
@@ -1947,7 +1880,7 @@ function simulate(yeers, days){
                 //clothing
                 if (containsItem(near.clothing, artifact.name)){
                     if (isFamiliar(me, near.name)){
-                        mem = new Keymemory(day, [me.name, near.name], {x:me.loc.x,y:me.loc.y}, 'I saw '+near.name+' with the '+artifact.name, 'surprised');
+                        mem = new KeyMemory(day, [me.name, near.name], {x:me.loc.x,y:me.loc.y}, 'I saw '+near.name+' with the '+artifact.name, 'surprised');
                         me.keyMemories.push(mem);
                         for (op of char.opinions){
                             if (op.keyword == artifact.name){
@@ -1957,7 +1890,7 @@ function simulate(yeers, days){
                         }
                     }
                     else{
-                        mem = new Keymemory(day, [me.name, 'a stranger'], {x:me.loc.x,y:me.loc.y}, 'I saw a stranger with the '+artifact.name, 'surprised');
+                        mem = new KeyMemory(day, [me.name, 'a stranger'], {x:me.loc.x,y:me.loc.y}, 'I saw a stranger with the '+artifact.name, 'surprised');
                         me.keyMemories.push(mem);
                         for (op of char.opinions){
                             if (op.keyword == artifact.name){
@@ -1975,7 +1908,7 @@ function simulate(yeers, days){
             for (big of big8){
                 if (near.name == big.name){
                     let emotion = getEmo(getAff(me, big.name));
-                    mem = new Keymemory(day, [me.name, big.name], {x:me.loc.x,y:me.loc.y}, 'I saw '+big.name, emotion);
+                    mem = new KeyMemory(day, [me.name, big.name], {x:me.loc.x,y:me.loc.y}, 'I saw '+big.name, emotion);
                     me.keyMemories.push(mem); 
                 }
             }
@@ -1985,11 +1918,11 @@ function simulate(yeers, days){
         for (near of nearby){
             if (isFamiliar(me, near.name)){
                 let emotion = getEmo(getAff(me, near.name));
-                mem = new Keymemory(day, [me.name, near.name], {x:me.loc.x,y:me.loc.y}, 'I saw '+near.name, emotion);
+                mem = new KeyMemory(day, [me.name, near.name], {x:me.loc.x,y:me.loc.y}, 'I saw '+near.name, emotion);
                 me.keyMemories.push(mem); 
             }
             else {
-                mem = new Keymemory(day, [me.name, near.name], {x:me.loc.x,y:me.loc.y}, 'I saw a stranger with '+near.clothing.toString()+' pass by.', 'indifferent');
+                mem = new KeyMemory(day, [me.name, near.name], {x:me.loc.x,y:me.loc.y}, 'I saw a stranger with '+near.clothing.toString()+' pass by.', 'indifferent');
                 me.keyMemories.push(mem); 
             }
         }
@@ -1997,7 +1930,7 @@ function simulate(yeers, days){
         for (monster of monsters){
             if (monster.loc.x == me.loc.x && monster.loc.y == me.loc.y){
                 let emotion = getEmobyStrength(me, monster);
-                mem = new Keymemory(day, [me.name, near.name], {x:me.loc.x,y:me.loc.y}, 'I saw a '+monster.name+'!', emotion);
+                mem = new KeyMemory(day, [me.name, near.name], {x:me.loc.x,y:me.loc.y}, 'I saw a '+monster.name+'!', emotion);
                 me.keyMemories.push(mem); 
             }
         }
@@ -2007,12 +1940,12 @@ function simulate(yeers, days){
             if (containsItem(bandits, near.name)){
                 if (isFamiliar(me, near.name)){
                     let emotion = getEmobyStrength(me, near);
-                    mem = new Keymemory(day, [me.name, near.name], {x:me.loc.x,y:me.loc.y}, 'I saw '+near.name+' the bandit!', emotion);
+                    mem = new KeyMemory(day, [me.name, near.name], {x:me.loc.x,y:me.loc.y}, 'I saw '+near.name+' the bandit!', emotion);
                     me.keyMemories.push(mem); 
                 }
                 else {
                     let emotion = getEmobyStrength(me, near);
-                    mem = new Keymemory(day, [me.name, 'a stranger'], {x:me.loc.x,y:me.loc.y}, 'I saw a bandit!', emotion);
+                    mem = new KeyMemory(day, [me.name, 'a stranger'], {x:me.loc.x,y:me.loc.y}, 'I saw a bandit!', emotion);
                     me.keyMemories.push(mem); 
                 }
             }
@@ -2021,7 +1954,7 @@ function simulate(yeers, days){
         //notice someone they want to kill nearby
         let hated = [];
         for (opinion of me.opinions){
-            if (opinion.familiar == true && opinion.affinity<-79){
+            if (opinion.familiar == true && opinion.affinity<-59){
                 hated.push(opinion.keyword);
             }
         }
@@ -2056,6 +1989,157 @@ function simulate(yeers, days){
         //when you come here for player version, make sure to add checker if Orsted is nearby.
     }
 
+    days = days + (yeers*100); //convert kiloyears to days
+    let yearCounter = 0;
+
+    
+
+    for (dayz=0; dayz<days; dayz++){
+        console.log('day '+day);
+        big8 = getbig8();
+        
+        //each day has 3 phase
+        for (phase = 0; phase<3; phase++){
+            console.log(big8);
+            //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ character logic ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+            shuffle(characters);
+            console.log(towns);
+            console.log(Dungeons);
+            for (char of characters){
+                console.log(char);
+                console.log(char.loc.x+','+char.loc.y);
+                //interact with characters or monsters on current tile. Talk, pick up artifacts, etc.
+                interact(char);
+
+                //add actions based on current goal
+                checkGoals(char);
+
+                //take action and edit goals based on result
+                takeAction(char);
+
+                //console.log(char);
+                console.log(char.loc.x+','+char.loc.y);
+                console.log('-----');
+
+            }
+            console.log(towns);
+            console.log(Dungeons);
+            
+
+            //+++++++++++++++++++++++++++++++++++++++++++++++++++ monster logic +++++++++++++++++++++++++++++++++
+            console.log('monsters');
+            for (mon of monsters){
+                console.log(mon.name);
+                console.log(mon);
+                //spreadMonster(mon);
+                checkGoals(mon);
+                takeAction(mon);
+                //check if too many monsters on tile and spread out if so
+                
+            }
+
+            //&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&& things that happen at the end of the phase &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+            for (char of characters){
+                for (opi of char.opinions){
+                    if (opi.affinity >100){opi.affinity=100;}
+                    if (opi.affinity <-100)(opi.affinity=-100);
+                }
+            }
+
+            //as interesting things happen a list is populated with those occurances. clear it out and console log it here.
+            reportEvents();
+            
+            //const input = prompt();
+            
+
+        }
+        //********************************************* things that happen at the end of the day *******************************************************************
+        day++;
+        yearCounter++;
+        if (yearCounter == 100){
+            kiloyears++; 
+            yearCounter = 0;
+            for (character of characters){
+                character.age++;
+                //opinions of things slowly get less strong as the years go by
+                for (opi of character.opinions){
+                    if (opi.value < -23){opi.value = opi.value+3;}
+                    if (opi.value > 23){opi.value = opi.value-3;}
+                }
+            }
+        }
+
+        for (character of characters){
+            if (character.strength > 299 && containsItem(legends, character.name) == false){
+                transformToLegend(character);
+            }
+        }
+        //new people come of age over time
+        for (town of towns){
+            //it is very important you include undefined at the end!
+            if (69 == getRand(0,100)){spawnCommoner(town, 18, undefined, undefined);}
+            if (69 == getRand(0,100)){spawnMerchant(town, 18, undefined, undefined, undefined, undefined);}
+            if (69 == getRand(0,100)){spawnMercenary(town, 18, undefined, undefined);}
+            if (69 == getRand(0,100)){spawnAdventurer(town, 18, undefined, undefined);}
+        }
+        //die of old age
+        for (character of characters){
+            if (character.age > 75 && containsItem(legends, character.name)==false){
+                if (69 == getRand(0,1000)){
+                    //character dies of old age
+                    killCharacter(character);
+                }
+            }
+            if (character.age > 300 && character.name != 'ORSTED THE ANNIHILATOR'){
+                if (69 == getRand(0,5000)){
+                    //character dies of old age
+                    killCharacter(character);
+                }
+            }
+        }
+        //new bandits
+        if (1 == getRand(0,9)){
+            let bandFlag = true;
+            while (bandFlag){
+                let i = getRand(1,sizeX-1);
+                let j = getRand(1,sizeY-1);
+                if (grid[i][j].road == true){
+                    bandFlag = false;
+                    spawnBandit(i,j, undefined, undefined);
+                }
+            }    
+        }      
+        //replenish monsters and artifacts at dungeons after 50 days
+        for (dung of Dungeons){
+            let flag = false;
+            for (arti of artifacts){
+                if (arti.loc.x == dung.loc.x && arti.loc.y == dung.loc.y){
+                    flag = true;
+                }
+            }
+            if (flag == false){
+                dung.countdown--;
+                if (dung.countdown < 1){
+                    dung.countdown = 50;
+                    console.log(dung.name+' replenishing monster & loot.')
+                    spawnSuperiorM(dung.loc.x, dung.loc.y, undefined);
+                    let artifact = new Artifact({x:dung.loc.x,y:dung.loc.y});
+                    artifacts.push(artifact);
+                    keywords.push(artifact.name);
+                }  
+            }
+        }
+        //characters like those they travel with.
+        for (char of characters) {
+            for (key of char.party){
+                for (opi of char.opinions){
+                    if (opi.keyword == key && opi.keyword != char.name){
+                        if (opi.affinity <80){opi.affinity++;}
+                    }
+                }
+            }
+        }
+        
 
 
 
@@ -2063,6 +2147,5 @@ function simulate(yeers, days){
 
 
 
-
-
+    }////////////////////
 }
