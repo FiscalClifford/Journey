@@ -1802,7 +1802,7 @@ function seedOpinions(){
         for (op of person.opinions){
             if (op.keyword == 'ORSTED THE ANNIHILATOR'){
                 op.familiar = true;
-                op.affinity = getRand(-70, -10);
+                op.affinity = getRand(-70, -30);
             }
         }
         
@@ -2392,6 +2392,6 @@ dispGrid();
 console.log(towns);
 console.log(Dungeons);
 console.log('---------');
-simulate(0, 100);
+simulate(0, 50);
 console.log('done');
 //playgame();

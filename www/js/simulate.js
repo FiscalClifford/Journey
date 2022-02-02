@@ -1,8 +1,9 @@
 // This is meant to simulate the world progress for a specified amount of time. I will have a seperate .js file for when the player can interact.
 // The two files should be largely similar however.
 
-//const help = require("cordova/src/help");
-//const { find } = require("../../platforms/browser/platform_www/cordova_plugins");
+// const { splice } = require("../../platforms/browser/platform_www/cordova_plugins");
+// const help = require("cordova/src/help");
+// const { find } = require("../../platforms/browser/platform_www/cordova_plugins");
 
 //Basic(0-20) -> intermediate(20-60) -> advanced(60-120) -> expert(120-200) -> master(200-300) -> Queen(300-500) -> King(500-1000) -> God(1000+)
 
@@ -131,7 +132,15 @@ var simulate = function(yeers, days){
                     }
                 }
             }
+            if (containsItem(mercenaries, char.name) || containsItem(adventurers, char.name) || containsItem(legends, char.name)){
+                if (char.weapon == 'fists'){
+                    let weapon = swords[getRand(0, swords.length-1)];
+                    char.weapon = weapon;
+                }
+            }
+
             if (containsItem(commoners, char.name) || containsItem(mercenaries, char.name)){
+                
                 if (char.goals.length < 2){
                     if (char.loc.x != char.hometown.loc.x && char.loc.y != char.hometown.loc.y){
                         char.goals.unshift(new Goal(char.hometown.name, 'travel'));
@@ -272,6 +281,13 @@ var simulate = function(yeers, days){
             if (ghost.name == targetKey){
                 console.log('person is dead');
                 char.goals.shift();
+                return;
+            }
+        }
+
+        for (goal in char.goals){
+            if (char.goals[goal].keyword == 'undefined' || char.goals[goal].keyword == undefined){
+                char.goals.splice(goal,1);
                 return;
             }
         }
@@ -1094,8 +1110,8 @@ var simulate = function(yeers, days){
                             opi.familiar = true;
                             opi.affinity = opi.affinity-getRand(10,20);
                             let emotion = getEmobyStrength(fighter, f2);
-                            let i = fighter.loc.x;
-                            let j = fighter.loc.y;
+                            let i = fighter.loc.x.valueOf();
+                            let j = fighter.loc.y.valueOf();
                             let mem = new KeyMemory(day, [fighter.name, f2.name], {x:i,y:j}, 'I fought '+f2.name+'.', emotion);
                             fighter.keyMemories.push(mem);
                             history.push(mem);
@@ -1110,8 +1126,8 @@ var simulate = function(yeers, days){
                             opi.familiar = true;
                             opi.affinity = opi.affinity-getRand(10,20);
                             let emotion = getEmobyStrength(fighter, f2);
-                            let i = fighter.loc.x;
-                            let j = fighter.loc.y;
+                            let i = fighter.loc.x.valueOf();
+                            let j = fighter.loc.y.valueOf();
                             let mem = new KeyMemory(day, [fighter.name, f2.name], {x:i,y:j}, 'I fought '+f2.name+'.', emotion);
                             fighter.keyMemories.push(mem);
                         }
@@ -1490,7 +1506,7 @@ var simulate = function(yeers, days){
             }
         }
         
-        
+        let z = 0;
         for (person of p1Final){
             console.log(person.name);
         
@@ -1822,17 +1838,36 @@ var simulate = function(yeers, days){
                 
                 killCharacter(person);
                 
-                for (index in p1Final){
-                    if (p1Final[index].name == person.name){
-                        p1Final.splice(index,1);
-                    }
-                }
-            }   
+                //for (index in p1Final){
+                   // if (p1Final[index].name == person.name){
+                        p1Final.splice(z,1);
+                   // }
+                //}
+                
+            }  
+            z++; 
         }
         //might need to make it so that kill goal is added for each person on other team,
         //and that goal is removed after running away or winning.
         if (p1Final.length >0){
             partyRunAway(p1Final);
+        }
+        
+    }
+
+    cleanMems = function(char){
+        let z = 0;
+        for (mem of char.keyMemories){
+            if (mem.time < day-20){
+                
+                if (mem.takeAway.includes("I saw")){
+                    char.keyMemories.splice(z,1);
+                }
+                else if (mem.takeAway.includes("I talked")){
+                    char.keyMemories.splice(z,1);
+                }
+            }
+            z++;
         }
     }
 
@@ -1841,7 +1876,8 @@ var simulate = function(yeers, days){
         famwith8(char);
         pickupArtifact(char);
         noticeNearby(char);
-        //attackNearby(char);
+        cleanMems(char);
+        
 
         roll = getRand(1,3);
         for (i=0;i<roll;i++){
@@ -1858,6 +1894,11 @@ var simulate = function(yeers, days){
                 }
             }
         }
+
+        //a double check for if dead
+        if (char.loc.x == 0 && char.loc.y == 0){
+            killCharacter(char);
+        }
     
     }
 
@@ -1868,6 +1909,7 @@ var simulate = function(yeers, days){
         //eventually i'll try to add cool key memories to an array and output it here
         console.log(history);
         console.log(characters); 
+        console.log(dead);
         //history = [];
     }
 
@@ -2211,7 +2253,7 @@ var simulate = function(yeers, days){
                 
             }
         }
-        if (nearby.length > 0 && me.name != 'ORSTED THE ANNIHILATOR'){
+        if (nearby.length > 0 ){
             let target = nearby[getRand(0, nearby.length-1)];
             if (isFamiliar(me, target.name)){
                 let roll = getRand(0,3);
@@ -2267,25 +2309,31 @@ var simulate = function(yeers, days){
                                 for (opi of target.opinions){
                                     if (opi.keyword == me.name){
                                         opi.affinity=opi.affinity+getRand(2,10);
+                                        opi.familiar = true;
                                     }
                                 }
                                 op.affinity=op.affinity+getRand(2,10);
+                                op.familiar = true;
                             }
                             else if (target.personality == 'normal' || me.personality == 'normal'){
                                 for (opi of target.opinions){
                                     if (opi.keyword == me.name){
                                         opi.affinity=opi.affinity+getRand(-5,5);
+                                        opi.familiar = true;
                                     }
                                 }
                                 op.affinity = op.affinity+getRand(-5,5);
+                                op.familiar = true;
                             }
                             else {
                                 for (opi of target.opinions){
                                     if (opi.keyword == me.name){
                                         opi.affinity=opi.affinity+getRand(-10,-2);
+                                        opi.familiar = true;
                                     }
                                 }
                                 op.affinity = op.affinity+getRand(-10,-2);
+                                op.familiar = true;
                             }
                         }
                     }
@@ -2297,6 +2345,7 @@ var simulate = function(yeers, days){
                     emotion = getEmo(getAff(target, me.name));
                     mem = new KeyMemory(day, [target.name, me.name], {x:target.loc.x,y:target.loc.y}, 'I met '+me.name, emotion);
                     target.keyMemories.push(mem); 
+
 
                 }
             }
@@ -2516,7 +2565,7 @@ var simulate = function(yeers, days){
 
         //when you come here for player version, make sure to add checker if Orsted is nearby.
     }
-
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     days = days + (yeers*100); //convert kiloyears to days
     let yearCounter = 0;
     let kiloYear = 0;
@@ -2641,13 +2690,41 @@ var simulate = function(yeers, days){
             if (character.age > 75 && containsItem(legends, character.name)==false){
                 if (69 == getRand(0,1000)){
                     //character dies of old age
+                    let mem = new KeyMemory(day, [character.name], {x:character.loc.x.valueOf(), y:character.loc.y.valueOf()}, character.name+' died of old age', 'indifferent');
+                    history.push(mem);
                     killCharacter(character);
                 }
+                if (character.age > 90){
+                    if (69 == getRand(0,100)){
+                        //character dies of old age
+                        let mem = new KeyMemory(day, [character.name], {x:character.loc.x.valueOf(), y:character.loc.y.valueOf()}, character.name+' died of old age', 'indifferent');
+                        history.push(mem);
+                        killCharacter(character);
+                    }
+                }
             }
-            if (character.age > 300 && character.name != 'ORSTED THE ANNIHILATOR'){
-                if (69 == getRand(0,5000)){
+            if (character.age > 200 && character.name != 'ORSTED THE ANNIHILATOR'){
+                if (69 == getRand(0,3000)){
                     //character dies of old age
+                    let mem = new KeyMemory(day, [character.name], {x:character.loc.x.valueOf(), y:character.loc.y.valueOf()}, character.name+' died of old age', 'indifferent');
+                    history.push(mem);
                     killCharacter(character);
+                }
+                if (character.age > 300){
+                    if (69 == getRand(0,1000)){
+                        //character dies of old age
+                        let mem = new KeyMemory(day, [character.name], {x:character.loc.x.valueOf(), y:character.loc.y.valueOf()}, character.name+' died of old age', 'indifferent');
+                        history.push(mem);
+                        killCharacter(character);
+                    }
+                }
+                if (character.age > 400){
+                    if (69 == getRand(0,500)){
+                        //character dies of old age
+                        let mem = new KeyMemory(day, [character.name], {x:character.loc.x.valueOf(), y:character.loc.y.valueOf()}, character.name+' died of old age', 'indifferent');
+                        history.push(mem);
+                        killCharacter(character);
+                    }
                 }
             }
         }
