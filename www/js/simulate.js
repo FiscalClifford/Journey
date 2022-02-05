@@ -5,7 +5,7 @@
 // const help = require("cordova/src/help");
 // const { find } = require("../../platforms/browser/platform_www/cordova_plugins");
 
-//Basic(0-20) -> intermediate(20-60) -> advanced(60-120) -> expert(120-200) -> master(200-300) -> Queen(300-500) -> King(500-1000) -> God(1000+)
+//Basic(0-20) -> intermediate(20-60) -> advanced(60-120) -> expert(120-200) -> master(200-300) -> Queen(300-500) -> King(500-999) -> God(1000+)
 
 var simulate = function(yeers, days){
     var history = [];
@@ -137,6 +137,26 @@ var simulate = function(yeers, days){
                     let weapon = swords[getRand(0, swords.length-1)];
                     char.weapon = weapon;
                 }
+                if (char.clothing[0] == 'damaged tatters'){
+                    let color1 = mutedColors[getRand(0, mutedColors.length-1)];
+                    let pants = getRand(0, lowerClothes.length-1);
+                    char.clothing[0] = (color1+' '+lowerClothes[pants]);
+                }
+                if (char.clothing[1] == 'damaged tatters'){
+                    let color1 = mutedColors[getRand(0, mutedColors.length-1)];
+                    let shirt = getRand(0, upperClothes.length-1);
+                    char.clothing[1] = (color1+' '+upperClothes[shirt]);
+                }
+                if (char.clothing[2] == 'damaged tatters'){
+                    let color = mutedColors[getRand(0, mutedColors.length-1)];
+                    let hat = getRand(0, headgear.length-1);
+                    char.clothing[2] = (color+' '+headgear[hat]);
+                }
+                if (char.clothing[3] == 'damaged tatters'){
+                    let color = mutedColors[getRand(0, mutedColors.length-1)];
+                    let cape = getRand(0, capes.length-1);
+                    char.clothing[3] = (color+' '+capes[cape]);
+                }
             }
 
             if (containsItem(commoners, char.name) || containsItem(mercenaries, char.name)){
@@ -155,13 +175,16 @@ var simulate = function(yeers, days){
             }
             if (containsItem(adventurers, char.name) && char.goals.length < 2){
                 
-                let roll = getRand(0,3);
+                let roll = getRand(0,4);
                 if (roll == 1){
                     //go to a town
                     
                     let destination = towns[getRand(0,towns.length-1)];
                     char.goals.unshift(new Goal(destination.name, 'travel'));
                     char.goals.unshift(new Goal(destination.name, 'rest'));
+                }
+                else if (roll == 2){
+                    char.goals.unshift(new Goal(char.name, 'timedWander'));
                 }
                 else {
                     //go to a dungeon
@@ -181,6 +204,9 @@ var simulate = function(yeers, days){
                     let destination = towns[getRand(0,towns.length-1)];
                     char.goals.unshift(new Goal(destination.name, 'travel'));
                     char.goals.unshift(new Goal(destination.name, 'rest'));
+                }
+                else if (roll == 2 || roll == 3 || roll == 4){
+                    char.goals.unshift(new Goal(char.name, 'timedWander'));
                 }
                 else {
                     //go to a dungeon
@@ -491,8 +517,8 @@ var simulate = function(yeers, days){
             
             let nearby = [];
             for (character of characters){
-                if (character.loc.x == char.loc.x && character.loc.y == char.loc.y){
-                    if (character.name != char.name && character.strength > p2.strength - 50 && character.name != p1.name){
+                if (character.loc.x == p1.loc.x && character.loc.y == p1.loc.y){
+                    if (character.name != p2.name && character.strength > p2.strength - 50 && character.name != p1.name){
                         let cooldownFlag = false;
                         for (g of character.goals){
                             if (g.action == 'fightCooldown'){
@@ -531,6 +557,16 @@ var simulate = function(yeers, days){
             let score1 = 0;
             for (member of p1Party){
                 score1 = score1 + member.strength;
+                //characters appreciate those who joined to fight with them
+                for (member2 of p1Party){
+                    if (member2.name != member.name){
+                        for (opi of member.opinions){
+                            if (opi.keyword == member2.name){
+                                opi.affinity = opi.affinity+20;
+                            }
+                        }
+                    }
+                }
                 
             }
             let score2 = 0;
@@ -980,11 +1016,7 @@ var simulate = function(yeers, days){
                     }
                 }
             }
-            for (near of nearby){
 
-            }
-            
-            
             //choose if bystanders help
             if (nearby.length >0){
                 for (near of nearby){
@@ -1020,11 +1052,32 @@ var simulate = function(yeers, days){
             let score1 = 0;
             for (member of p1Party){
                 score1 = score1 + member.strength;
+                //characters appreciate those who joined to fight with them
+                for (member2 of p1Party){
+                    if (member2.name != member.name){
+                        for (opi of member.opinions){
+                            if (opi.keyword == member2.name){
+                                opi.affinity = opi.affinity+20;
+                            }
+                        }
+                    }
+                }
                 
             }
             let score2 = 0;
             for (member of p2Party){
                 score2 = score2 + member.strength;
+
+                //characters appreciate those who joined to fight with them
+                for (member2 of p2Party){
+                    if (member2.name != member.name){
+                        for (opi of member.opinions){
+                            if (opi.keyword == member2.name){
+                                opi.affinity = opi.affinity+20;
+                            }
+                        }
+                    }
+                }
             }
             
             console.log (p1.name + ' party: '+score1+' vs. '+p2.name+' party: '+score2);
@@ -1170,6 +1223,173 @@ var simulate = function(yeers, days){
         }
     }
 
+    monsterWander = function(char, goal){
+
+        //initiates a fight with any character in the same tile regardless of strength. people help fight vs monsters
+        let nearby = [];
+        for (character of characters){
+            if (character.loc.x == char.loc.x && character.loc.y == char.loc.y){
+                if (character.name != char.name){
+                    nearby.push(character);
+                }
+            }
+        }
+        if (nearby.length >0){
+            let target = nearby[getRand(0, nearby.length-1)];
+            char.actions.push(new Goal(target.name, 'fight'));
+            
+        }
+        else{
+            //walk around aimlessly
+            let target = new Loc();
+
+            var blocked = true;
+            var counter = 0;
+            while (blocked == true){
+                blocked = false;
+                var x = char.loc.x.valueOf();
+                var y = char.loc.y.valueOf();
+                //console.log(man.loc.x+','+man.loc.y);
+                rollX = getRand(0,1);
+                rollY = getRand(0,1);
+
+                if (rollX == 0 && rollY == 0){
+                    x = x-1;
+                    y = y;
+                }
+                if (rollX == 0 && rollY == 1){
+                    x = x+1;
+                    y = y;
+                }
+                if (rollX == 1 && rollY == 0){
+                    x = x;
+                    y = y+1;
+                }
+                if (rollX == 1 && rollY == 1){
+                    x = x;
+                    y = y-1;
+                }
+                if (grid[x][y].mountain == true || grid[x][y].water == true){
+                    blocked = true;
+                }
+                counter++;
+                if (counter > 100){
+                    console.log('counter maxed monsterwander');
+                    break;
+                }
+            }
+
+            target.x = x;
+            target.y = y;
+
+            char.actions.push(new Goal(target, 'move'));
+            console.log(char.name+' is wandering');  
+        }
+    }
+
+    wander = function(char, goal){
+
+        //walk around aimlessly
+        let target = new Loc();
+
+        var blocked = true;
+        var counter = 0;
+        while (blocked == true){
+            blocked = false;
+            var x = char.loc.x.valueOf();
+            var y = char.loc.y.valueOf();
+            //console.log(man.loc.x+','+man.loc.y);
+            rollX = getRand(0,1);
+            rollY = getRand(0,1);
+
+            if (rollX == 0 && rollY == 0){
+                x = x-1;
+                y = y;
+            }
+            if (rollX == 0 && rollY == 1){
+                x = x+1;
+                y = y;
+            }
+            if (rollX == 1 && rollY == 0){
+                x = x;
+                y = y+1;
+            }
+            if (rollX == 1 && rollY == 1){
+                x = x;
+                y = y-1;
+            }
+            if (grid[x][y].mountain == true || grid[x][y].water == true){
+                blocked = true;
+            }
+            counter++;
+            if (counter > 100){
+                console.log('counter maxed wander');
+                break;
+            }
+        }
+
+        target.x = x;
+        target.y = y;
+
+        char.actions.push(new Goal(target, 'move'));
+        console.log(char.name+' is wandering');  
+    }
+
+    timedWander = function(char, goal){
+        //this is so that a character wanders for a while but not forever
+        let endChance = getRand(1,30);
+        if (endChance == 1){
+            char.goals.shift();
+            char.goals.unshift(new Goal(char.hometown.name, 'travel'));
+        }
+        else{
+            //walk around aimlessly
+            let target = new Loc();
+
+            var blocked = true;
+            var counter = 0;
+            while (blocked == true){
+                blocked = false;
+                var x = char.loc.x.valueOf();
+                var y = char.loc.y.valueOf();
+                //console.log(man.loc.x+','+man.loc.y);
+                rollX = getRand(0,1);
+                rollY = getRand(0,1);
+
+                if (rollX == 0 && rollY == 0){
+                    x = x-1;
+                    y = y;
+                }
+                if (rollX == 0 && rollY == 1){
+                    x = x+1;
+                    y = y;
+                }
+                if (rollX == 1 && rollY == 0){
+                    x = x;
+                    y = y+1;
+                }
+                if (rollX == 1 && rollY == 1){
+                    x = x;
+                    y = y-1;
+                }
+                if (grid[x][y].mountain == true || grid[x][y].water == true){
+                    blocked = true;
+                }
+                counter++;
+                if (counter > 100){
+                    console.log('counter maxed wander');
+                    break;
+                }
+            }
+
+            target.x = x;
+            target.y = y;
+
+            char.actions.push(new Goal(target, 'move'));
+            console.log(char.name+' is wandering');  
+        }
+    }
+    
     fightCooldown = function(char, goal){
         //dont engage until next phase
         char.actions.push(new Goal(char.name, 'skip'));
@@ -1192,6 +1412,10 @@ var simulate = function(yeers, days){
         
         for (man of party){
             //console.log(man.name);
+            if (man.loc.x == 0){
+                console.log(man.name+' error catch in partyRunaway, skipping.');
+                continue;
+            }
             var blocked = true;
             var counter = 0;
             while (blocked == true){
@@ -1238,6 +1462,9 @@ var simulate = function(yeers, days){
        
         let supercounter = 0;
         for (man of party){
+            if (man.loc.x == 0){
+                continue;
+            }
             supercounter ++;
             let wantsToHelp = false;
             //console.log(man);
@@ -1312,6 +1539,15 @@ var simulate = function(yeers, days){
             case 'rest':////////////////////////////////////////////////////////////////////////////////////////
                 rest(char, goal);
             break;
+            case 'monsterWander':////////////////////////////////////////////////////////////////////////////////////////
+                monsterWander(char, goal);
+            break;
+            case 'wander':////////////////////////////////////////////////////////////////////////////////////////
+                wander(char, goal);
+            break;
+            case 'timedWander':////////////////////////////////////////////////////////////////////////////////////////
+                timedWander(char, goal);
+            break;
             case 'fightCooldown':////////////////////////////////////////////////////////////////////////////////////////
                 fightCooldown(char, goal);
             break;
@@ -1373,7 +1609,7 @@ var simulate = function(yeers, days){
                     let x = target.x;
                     let y = target.y;
                     if (grid[x][y].mountain == true || grid[x][y].water == true){
-                        console.log('Cant go there! '+char.name+' to '+loc.x+','+loc.y);
+                        console.log('Cant go there! '+char.name+' not moving');
                     }
                     else{
                         char.loc.x = x;
@@ -1903,6 +2139,29 @@ var simulate = function(yeers, days){
     }
 
     spreadMonster = function(mon){
+        if (containsItem(monsterMinor, mon.name)){
+            let roll = getRand(0,20);
+            if (roll == 1){
+                mon.goals.unshift(new Goal(mon.name, 'monsterWander'));
+                return;
+            }
+        }
+        if (containsItem(monsterMiddle, mon.name)){
+            let roll = getRand(0,60);
+            if (roll == 1){
+                mon.goals.unshift(new Goal(mon.name, 'monsterWander'));
+                return;
+            }
+        }
+        let tally = 0;
+        for (monster of monsters){
+            if (monster.loc.x == mon.loc.x && monster.loc.y == mon.loc.y){
+                tally++;
+            }
+        }
+        if (tally > 4 && containsItem(monsterSuperior, mon.name) == false && containsItem(legendaryMonsters, mon.name)==false && containsItem(creatures, mon.name)==false){
+            mon.goals.unshift(new Goal(mon.name, 'monsterWander'));
+        }
     }
 
     reportEvents = function(){
@@ -1947,12 +2206,51 @@ var simulate = function(yeers, days){
             }
         }
         character.party = [character];
-
-
-    
-        //clean up lists
         dead.push(character);
 
+        //drop artifacts
+        for (artifact of artifacts){
+            if (character.weapon == artifact.name){
+                artifact.loc.x = character.loc.x.valueOf();
+                artifact.loc.y = character.loc.y.valueOf();
+                character.weapon = 'fists';
+            }
+            for (cloth of character.clothing){
+                if (cloth == artifact.name){
+                    artifact.loc.x = character.loc.x.valueOf();
+                    artifact.loc.y = character.loc.y.valueOf();
+                }
+            }
+        }
+
+
+        //check if monster so that we don't add their name to name pool later
+        let ismonster = false;
+        let legmon = false;
+        for (mon of monsters){
+            if (mon.name == character.name){
+                ismonster = true;
+            }
+        }
+        if (containsItem(legendaryMonsters, character.name)){
+            ismonster = true;
+            legmon = true;
+        }
+
+        //legendary monsters drop an artifact when defeated
+        if (legmon == true){
+            if (character.description.includes('Demon King') == false){
+                console.log(character.name+' is defeated and from their corpse, an artifact is found.');
+                let artifact = new Artifact({x:character.loc.x.valueOf(),y:character.loc.y.valueOf()});
+                artifacts.push(artifact);
+                keywords.push(artifact.name);
+                for (dude of characters){
+                    dude.opinions.push(new Opinion(artifact.name, undefined, false));
+                }
+            }
+        }
+        
+        //clean up lists
         for (charindex in characters){
             if (characters[charindex].name == character.name){
                 characters.splice(charindex,1);
@@ -2008,6 +2306,11 @@ var simulate = function(yeers, days){
                 }
             }
         }
+        for (i in legendaryMonsters){
+            if (legendaryMonsters[i].name == character.name){
+                    legendaryMonsters.splice(i,1);
+            }
+        }
         
         character.goals = [];
         character.actions = [];
@@ -2015,14 +2318,16 @@ var simulate = function(yeers, days){
         character.loc.y = 0;
 
         //sanitize name in case they have a title, then add name back to name bank with 'I' added.
-        let name = character.name;
-        let nArr =  name.split(",");
-        let final = nArr[0];
-        if (character.gender = 'male'){
-            maleNames.push(final+' I');
-        }
-        else if (character.gender = 'female'){
-            femaleNames.push(final+' I');
+        if (ismonster == false){
+            let name = character.name;
+            let nArr =  name.split(",");
+            let final = nArr[0];
+            if (character.gender = 'male'){
+                maleNames.push(final+' I');
+            }
+            else if (character.gender = 'female'){
+                femaleNames.push(final+' I');
+            }
         }
 
     }
@@ -2107,6 +2412,7 @@ var simulate = function(yeers, days){
                     //check if artifact weapon already
                     for (arti of artifacts){
                         if (char.weapon == arti.name){
+                            pickup = true;
                             if (artifact.bonus > arti.bonus){
                                 char.strength = char.strength - arti.bonus;
                                 char.weapon = artifact.name;
@@ -2115,7 +2421,7 @@ var simulate = function(yeers, days){
                                 arti.loc.y = char.loc.y.valueOf();
                                 artifact.loc.x = 0; //picked it up
                                 artifact.loc.y = 0;
-                                pickup = true;
+                                
                             }
                         }
                     }
@@ -2134,6 +2440,7 @@ var simulate = function(yeers, days){
                         //check if already have a diff artifact
                         for (arti of artifacts){
                             if (char.clothing[0] == arti.name){
+                                pickup = true;
                                 if (artifact.bonus > arti.bonus){
                                     char.strength = char.strength - arti.bonus;
                                     char.clothing[0] = artifact.name;
@@ -2142,7 +2449,7 @@ var simulate = function(yeers, days){
                                     arti.loc.y = char.loc.y.valueOf();
                                     artifact.loc.x = 0; //picked it up
                                     artifact.loc.y = 0;
-                                    pickup = true;
+                                    
                                 }
                             
                             }
@@ -2158,6 +2465,7 @@ var simulate = function(yeers, days){
                         //check if already have a diff artifact
                         for (arti of artifacts){
                             if (char.clothing[1] == arti.name){
+                                pickup = true;
                                 if (artifact.bonus > arti.bonus){
                                     char.strength = char.strength - arti.bonus;
                                     char.clothing[1] = artifact.name;
@@ -2166,7 +2474,7 @@ var simulate = function(yeers, days){
                                     arti.loc.y = char.loc.y.valueOf();
                                     artifact.loc.x = 0; //picked it up
                                     artifact.loc.y = 0;
-                                    pickup = true;
+                                    
                                 }
                                
                             }
@@ -2183,6 +2491,7 @@ var simulate = function(yeers, days){
                         //check if already have a diff artifact
                         for (arti of artifacts){
                             if (char.clothing[2] == arti.name){
+                                pickup = true;
                                 if (artifact.bonus > arti.bonus){
                                     char.strength = char.strength - arti.bonus;
                                     char.clothing[2] = artifact.name;
@@ -2191,7 +2500,7 @@ var simulate = function(yeers, days){
                                     arti.loc.y = char.loc.y;
                                     artifact.loc.x = 0; //picked it up
                                     artifact.loc.y = 0;
-                                    pickup = true;
+                                    
                                 }
                                 
                             }
@@ -2208,6 +2517,7 @@ var simulate = function(yeers, days){
                         //check if already have a diff artifact
                         for (arti of artifacts){
                             if (char.clothing[3] == arti.name){
+                                pickup = true;
                                 if (artifact.bonus > arti.bonus){
                                     char.strength = char.strength - arti.bonus;
                                     char.clothing[3] = artifact.name;
@@ -2216,7 +2526,7 @@ var simulate = function(yeers, days){
                                     arti.loc.y = char.loc.y.valueOf();
                                     artifact.loc.x = 0; //picked it up
                                     artifact.loc.y = 0;
-                                    pickup = true;
+                                    
                                 }
                                
                             }
@@ -2568,44 +2878,36 @@ var simulate = function(yeers, days){
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     days = days + (yeers*100); //convert kiloyears to days
     let yearCounter = 0;
-    let kiloYear = 0;
+    var kiloYear = 0;
+    var legmontimer = 0;
 
     for (day=0; day<days; day++){
         console.log('day '+day);
         var big8 = getbig8();
         
         //each day has 3 phase
-        for (phase = 0; phase<3; phase++){
+        for (phase = 0; phase<2; phase++){
             console.log(big8);
             //^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ character logic ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
             shuffle(characters);
-            console.log(towns);
-            console.log(Dungeons);
             for (char of characters){
                 console.log(char);
-                console.log(char.loc.x+','+char.loc.y);
-                //interact with characters or monsters on current tile. Talk, pick up artifacts, etc.
-                interact(char);
-
-                //add actions based on current goal
-                checkGoals(char);
-                
-                //take action and edit goals based on result
-                //infinite loop in here somewhere
-                takeAction(char);
-                
-                //console.log(char);
-                //console.log(char.loc.x+','+char.loc.y);
+                interact(char); //default actions
+                checkGoals(char); //analyze goals to add actions to queue
+                takeAction(char); //perform actions for that phase
                 console.log('-----');
 
             }
+            console.log(towns);
+            console.log(Dungeons);
 
             //+++++++++++++++++++++++++++++++++++++++++++++++++++ monster logic +++++++++++++++++++++++++++++++++
             console.log('monsters');
+            shuffle(monsters);
             for (mon of monsters){
                 console.log(mon.name);
                 console.log(mon);
-                //spreadMonster(mon);
+                spreadMonster(mon);
                 checkGoals(mon);
                 takeAction(mon);
                 //check if too many monsters on tile and spread out if so
@@ -2651,7 +2953,7 @@ var simulate = function(yeers, days){
         //new people come of age over time
         for (town of towns){
             //it is very important you include undefined at the end!
-            if (69 == getRand(0,200)){
+            if (69 == getRand(0,100)){
                 console.log('spawning commoner');
                 let guy = spawnCommoner(town, 18, undefined, undefined);
                 for (dude of characters){
@@ -2659,7 +2961,7 @@ var simulate = function(yeers, days){
                 }
 
             }
-            if (69 == getRand(0,200)){
+            if (69 == getRand(0,100)){
                 console.log('spawning merchant');
                 let guy = spawnMerchant(town, 18, undefined, undefined);
                 for (dude of characters){
@@ -2667,7 +2969,7 @@ var simulate = function(yeers, days){
                 }
                 
             }
-            if (69 == getRand(0,200)){
+            if (69 == getRand(0,100)){
                 console.log('spawning merc');
                 let guy = spawnMercenary(town, 18, undefined, undefined);
                 for (dude of characters){
@@ -2676,7 +2978,7 @@ var simulate = function(yeers, days){
                 town.mercs.push(guy);
                
             }
-            if (69 == getRand(0,200)){
+            if (69 == getRand(0,100)){
                 console.log('spawning adventurer');
                 let guy = spawnAdventurer(town, 18, undefined, undefined);
                 for (dude of characters){
@@ -2752,7 +3054,7 @@ var simulate = function(yeers, days){
         }
         
         //new monsters
-        if (1 == getRand(0,9)){
+        if (1 == getRand(0,15)){
             console.log('spawning monster');
             let bandFlag = true;
             let counter = 0;
@@ -2765,14 +3067,10 @@ var simulate = function(yeers, days){
                         spawnSuperiorM(i,j,goals=undefined);
                     }
                     else if (grid[i][j].grassland == true){
-                        
-                            spawnMinorM(i,j,goals=undefined);
-                        
+                        spawnMinorM(i,j,goals=undefined);
                     }
-                    else if (grid[i][j].tundra == true){
-                        
-                            spawnMiddleM(i,j,goals=undefined);
-                        
+                    else if (grid[i][j].tundra == true){  
+                        spawnMiddleM(i,j,goals=undefined);
                     }
                     else if (grid[i][j].desert == true){
                         let roll = getRand(0,1);
@@ -2782,19 +3080,14 @@ var simulate = function(yeers, days){
                         else{
                             spawnMinorM(i,j,goals=undefined);
                         }
-                        
                     }
                     else if (grid[i][j].swamp == true){
-                       
                             spawnSuperiorM(i,j,goals=undefined);
-                        
                     }
-
                     bandFlag = false;
-                    
                 }
                 counter++;
-                if (counter == 1000){
+                if (counter == 100){
                     console.log('monster counter error');
                     break;
                 }
@@ -2834,6 +3127,35 @@ var simulate = function(yeers, days){
                 }
             }
         }
+
+        //replenish legendary monsters
+        if (legendaryMonsters.length < 3){
+            legmontimer++;
+        }
+        if (legmontimer > 49){
+            console.log('spawning new legendary monster');
+            let flag = true;
+            while(flag){
+                flag = false;
+                var roll1 = getRand(2, sizeX-2);
+                var roll2 = getRand(2, sizeY-2);
+                if (grid[roll1][roll2].mountain == true || grid[roll1][roll2].water == true || grid[roll1][roll2].town == true || grid[roll1][roll2].road == true){
+                    flag = true;
+                }
+            }
+            let mon = spawnMonsterLegend(roll1, roll2, goals=undefined);
+            for (dude of characters){
+                dude.opinions.push(new Opinion(mon.name, getRand(-59,-20), true));
+            }
+            if (mon.description.includes('Demon King')){
+                for (dude of characters){
+                    dude.opinions.push(new Opinion(mon.weapon, getRand(-30,30), true));
+                }
+            }
+            legmontimer = 0;
+        }
+
+        
         
 
 

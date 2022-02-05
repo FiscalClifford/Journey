@@ -255,7 +255,7 @@ var artifactNames = ['Erolith','Uritris','Elphine','Aywin','Grequinal','Folduin'
 'Ithronel','Glyndithas','Faelyn','Wranmenor','Lazziar','Lorabanise','Ehlark','Reylee','Lethonel','Gilceran','Sinaht','Krisvalur','Amrynn','Fenceran','Sylmare','Valrora','Rolim','Wynbella','Rhalyf',
 'Sharel','Vulwin','Trisgolor','Gaelira','Yelquinal','Eshenesra','Zylcan','Delsanra','Faera','Leena','Nerimyar','Tanulia','Umesys','Immianthe','Elwenys','Jeardra','Beilamin','Zaleria','Raloynore',
 'Yrathea','Magcyne','Ariawyn','Umegeiros','Illithor','Uriphine','Jhaan','Ralojeon','Arathorn','Neribella','Ailre','Lurieth','Afamrail','Oridi','Vulen','Zinhana','Malon','Origeiros','Rilitar',
-'Sarjyre','Elkhazel','Ellana','Airdan','Qivalur'];
+'Sarjyre','Elkhazel','Ellana','Airdan','Qivalur', 'Oziro', 'Rhugen', 'Bezral', 'Vemron', 'Milvyr', 'Marketh', 'Marfurion', 'Nokzek', 'Ghirahn'];
 
 var artifactDesc = ['Hungering','Sealing','Liberty','Shade','Flames','Mystery','TrueSight','Revitilization','Gluttony','Anarchy','Tenacity','Animated Ice','Echoes','Foresight','Silence',
 'Light','Darkness','Destruction','Venom','Mending','Dominion','Prosperity','Ruination','Spiritualism','Decay','Desire','Hollowing','Temptation','Protection','Lunacy','Death','Life',
@@ -305,9 +305,17 @@ var monsterMinor = ['Goblin', 'Kobold', 'Giant Spider','Starving Bear'];
 
 var monsterMiddle = ['Animated Skeleton', 'Minotaur', 'Orc', 'Great Wolf'];
 
-var monsterSuperior = ['Eldritch Horror', 'Dragon', 'Titan', 'Hydra'];
+var monsterSuperior = ['Reaper', 'Griffon', 'Titan', 'Vampire'];
 
-var monstertypes = monsterMinor.concat(monsterMiddle).concat(monsterSuperior);
+var monsterLegend = ['Dragon', 'Hydra', 'Chimera', 'Demon King']; //Ultra Serpent
+
+var creature = ['Guardian Owl', 'Lost Spirit', 'Curious Faerie', 'Noble Wyvern', 'Wise Stag', 'Pesky Gnome'];
+
+var legCreature = ['Giant Turtle', 'Wild Pheonix', 'Great Fox', 'Wild Pegasus', 'Sprit Wolf', 'Lightning Hawk']
+
+var monsterTitles = ['The Undying', 'The Deathbringer', 'The Horrible', 'The Agent of Doom', 'The Widowmaker', 'Evil Incarnate', 'The Manslayer', 'The Arcane Slayer', 'The Blood Seeker', 'The Doombringer', 'Wrath Incarnate', 'The Lord of Suffering',
+'The Flayer', 'The Consumer of Heroes', 'The Forgotten One', 'The Soul Reaper', 'The Apostle of Death', 'The Husk of Nightmares', 'The Hollow Beast', 'The Lord of Hatred', 'Vengeance Incarnate', 'The Corrupted', 'The Lord of Flies', 'The Foul King',
+'The Sage of Suffering', 'The Dark One',  'The Furious', 'The Enraged', 'The Bloodthirster', 'The Heart Eater', 'The Lord of Graves', 'The Shadow Hunter', 'The Spirit Snatcher', 'The Harbringer of Decay', 'The Insidious'];
 
 var maims = ['missing left arm', 'missing right arm', 'missing left hand', 'missing right hand', 'missing left ear', 'missing right ear', 'missing left eye', 'missing right eye', 'missing nose', 'missing left foot',
 'missing right foot', 'missing left fingers'];

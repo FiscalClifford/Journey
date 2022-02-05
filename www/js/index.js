@@ -334,6 +334,9 @@ var commoners = [];
 var mercenaries = [];
 var legends = [];
 var monsters = [];
+var legendaryMonsters = [];
+var creatures = [];
+var legendaryCreatures = [];
 var bandits = [];
 var dead = [];
 var artifacts = [];
@@ -863,6 +866,16 @@ function chooseMonsterStrength(name){
     if (containsItem(monsterSuperior, name)){
         return getRand(200, 350);
     }
+    if (containsItem(monsterLegend, name)){
+        return getRand(700, 1500);
+    }
+    if (containsItem(creature, name)){
+        return getRand(30, 80);
+    }
+    if (containsItem(legCreature, name)){
+        return getRand(1000, 3000);
+    }
+
     return getRand(10,300);
 }
 function chooseMonsterClothing(name){
@@ -918,11 +931,11 @@ function chooseMonsterClothing(name){
     if (name == 'Great Wolf'){
         return ['tough fur'];
     }
-    if (name == 'Eldritch Horror'){
-        return ['primordial ooze', 'cloak of shadows'];
+    if (name == 'Reaper'){
+        return ['cloak of shadows'];
     }
-    if (name == 'Dragon'){
-        return ['sturdy scales', 'portruding spines', 'left wing', 'right wing'];
+    if (name == 'Griffon'){
+        return ['steely feathers', 'sturdy hide'];
     }
     if (name == 'Titan'){
         let clothing = [];
@@ -936,8 +949,59 @@ function chooseMonsterClothing(name){
         clothing.push(color2+' '+headgear[hat]);
         return clothing;
     }
+    if (name == 'Vampire'){
+        return ['black suit', 'umbra cape'];
+    }
+    if (name == 'Dragon'){
+        return ['sturdy scales', 'portruding spines', 'left wing', 'right wing'];
+    }
     if (name == 'Hydra'){
         return ['sturdy scales', 'portruding spines', 'several heads', 'swinging tail'];
+    }
+    if (name == 'Chimera'){
+        return ['lion head', 'goat body', 'serpent tail'];
+    }
+    if (name == 'Demon King'){
+        return ['obsidian armor', 'cape of flames', 'shadowed hood'];
+    }
+    if (name == 'Ultra Serpent'){
+        return ['jet black metal scales', 'red glowing eyes'];
+    }
+    if (name == 'Guardian Owl'){
+        return ['Fluffy feathers'];
+    }
+    if (name == 'Lost Spirit'){
+        return ['Ectoplasm'];
+    }
+    if (name == 'Curious Faerie'){
+        return ['pretty wings'];
+    }
+    if (name == 'Noble Wyvern'){
+        return ['sturdy hide', 'durable feathers'];
+    }
+    if (name == 'Wise Stag'){
+        return ['sturdy hide'];
+    }
+    if (name == 'Pesky Gnome'){
+        return ['cute little hat'];
+    }
+    if (name == 'Giant Turtle'){
+        return ['mighty shell'];
+    }
+    if (name == 'Wild Pheonix'){
+        return ['majestic feathers', 'flaming shroud'];
+    }
+    if (name == 'Great Fox'){
+        return ['Sleek Fur'];
+    }
+    if (name == 'Wild Pegasus'){
+        return ['Gorgeous wings'];
+    }
+    if (name == 'Spirit Wolf'){
+        return ['Sleek Fur', 'spectral presence'];
+    }
+    if (name == 'Lightning Hawk'){
+        return ['Crackling Wings', 'Shocking feathers'];
     }
     return ['big silly hat'];
 }
@@ -966,7 +1030,13 @@ function chooseMonsterWeapon(name){
     if (name == 'Great Wolf'){
         return 'sharp claws';
     }
-    if (name == 'Eldritch Horror'){
+    if (name == 'Griffon'){
+        return 'sharp claws';
+    }
+    if (name == 'Vampire'){
+        return 'blade fingers';
+    }
+    if (name == 'Reaper'){
         return 'razor sharp scythe';
     }
     if (name == 'Dragon'){
@@ -977,6 +1047,54 @@ function chooseMonsterWeapon(name){
     }
     if (name == 'Hydra'){
         return 'enormous fangs';
+    }
+    if (name == 'Chimera'){
+        return 'deadly fangs';
+    }
+    if (name == 'Demon King'){
+        let wep = new Artifact({x:0,y:0}, 'weapon');
+        artifacts.push(wep);
+        keywords.push(wep.name);
+        return wep.name;
+    }
+    if (name == 'Ultra Serpent'){
+        return 'venomous fangs';
+    }
+    if (name == 'Guardian Owl'){
+        return 'sharp beak';
+    }
+    if (name == 'Lost Spirit'){
+        return 'spectral slap';
+    }
+    if (name == 'Curious Faerie'){
+        return 'magic dust';
+    }
+    if (name == 'Noble Wyvern'){
+        return 'savage claws';
+    }
+    if (name == 'Wise Stag'){
+        return 'deadly antlers';
+    }
+    if (name == 'Pesky Gnome'){
+        return 'annoying voice';
+    }
+    if (name == 'Giant Turtle'){
+        return 'sharp beak';
+    }
+    if (name == 'Wild Pheonix'){
+        return 'fireball strike';
+    }
+    if (name == 'Great Fox'){
+        return 'sharp claws';
+    }
+    if (name == 'Wild Pegasus'){
+        return 'powerful hooves';
+    }
+    if (name == 'Spirit Wolf'){
+        return 'ghostly fangs';
+    }
+    if (name == 'Lightning Hawk'){
+        return 'lightning bolt';
     }
     return 'giant dildo';
 }
@@ -990,12 +1108,33 @@ function chooseMonsterDescription(name){
     if (containsItem(monsterMinor, name)){size = sizes1;}
     if (containsItem(monsterMiddle, name)){size = sizes2;}
     if (containsItem(monsterSuperior, name)){size = sizes3;}
+    if (containsItem(monsterLegend, name)){size = sizes3;}
+    if (containsItem(creature, name)){size = sizes2;}
+    if (containsItem(legCreature, name)){size = sizes3;}
+    if (name == 'Pesky Gnome'){size = ['itty bitty'];}
     let emotion = emotions[getRand(0, emotions.length-1)]
     let sizer = size[getRand(0, size.length-1)];
+
+    if (containsItem(creature,name) || containsItem(legCreature, name)){
+        return 'The creature is a '+color+' '+name+'. It is '+sizer+' and looks peaceful.';
+    }
 
     return 'The monster type is '+color+' '+name+'. It is '+sizer+' and looks '+emotion+'.';
 }
 function chooseMonsterGoal(name){
+    if (containsItem(monsterLegend, name)){
+        let goal = new Goal(name, 'monsterWander');
+        let goals = [];
+        goals.push(goal);
+        return goals;
+    }
+    if (containsItem(creature,name) || containsItem(legCreature, name)){
+        let goal = new Goal(name, 'wander');
+        let goals = [];
+        goals.push(goal);
+        return goals;
+    }
+
     let goal = new Goal(name, 'prowl');
     let goals = [];
     goals.push(goal);
@@ -1798,6 +1937,15 @@ function seedOpinions(){
                 }
             }
         }
+        // everyone dislikes legendary monsters
+        for (monster of legendaryMonsters){
+            for (op of person.opinions){
+                if (op.keyword == monster){
+                    op.affinity = getRand(-59, -30);
+                    op.familiar = true;
+                }
+            }
+        }
         // everyone hates orsted
         for (op of person.opinions){
             if (op.keyword == 'ORSTED THE ANNIHILATOR'){
@@ -2119,6 +2267,38 @@ function spawnSuperiorM(x,y, goals=undefined){
     monsters.push(monster);
 }
 
+function spawnMonsterLegend(x,y, goals=undefined){
+    let i = x;
+    let j = y;
+    let mon = monsterLegend[getRand(0,monsterLegend.length-1)];
+    let monster = new Monster(mon, {x:i,y:j}, goals);
+    monster.name = (artifactNames.splice(getRand(0,artifactNames.length-1),1).toString()+' '+monsterTitles.splice(getRand(0,monsterTitles.length-1),1).toString());
+    monsters.push(monster);
+    legendaryMonsters.push(monster.name);
+    keywords.push(monster.name);
+}
+
+function spawnCreature(x,y,goals=undefined){
+    let creat = creature[getRand(0,creature.length-1)];
+    let i = x;
+    let j = y;
+    let creatured = new Monster(creat, {x:i,y:j}, goals);
+    creatures.push(creatured);
+    monsters.push(creatured);
+}
+
+function spawnCreatureLegend(x,y,goals=undefined){
+    let creat = legCreature[getRand(0,legCreature.length-1)];
+    let i = x;
+    let j = y;
+    let creature = new Monster(creat, {x:i,y:j}, goals);
+    creature.name = (artifactNames.splice(getRand(0,artifactNames.length-1),1).toString()+', The '+creature.name);
+    creatures.push(creature);
+    monsters.push(creature);
+    legendaryCreatures.push(creature.name);
+    keywords.push(creature.name);
+}
+
 function spawnBandit(x,y, empty, empty2){
     let goals = [];
     let goal = new Goal(x+','+y, 'rob');
@@ -2165,6 +2345,8 @@ function seedCharacters(){
     let mercies = 6;
     let merchies = 5;
     let adventies = 4;
+    let legendmon = 3;
+    let legendcreat = 3;
 
     //commoners
     //mostly just mill about in town. Every so often will travel to a new town.
@@ -2228,7 +2410,7 @@ function seedCharacters(){
     //ORSTED THE ANNHILIATOR
     //travels between Dungeons and towns, hunting down the player.
     createOrsted = function(){
-        let startloc = towns[getRand(0,towns.length-1)];
+        let startloc = Dungeons[getRand(0,Dungeons.length-1)];
         let gender = 'male';
         let goals = [];
 
@@ -2236,21 +2418,21 @@ function seedCharacters(){
         artifacts.push(artifact);
         keywords.push(artifact.name);
 
-        artifact = new Artifact({x:0,y:0}, 'lower', 'perfectly clean white pants', 1000, 100000);
-        artifacts.push(artifact);
-        keywords.push(artifact.name);
+        let artifact2 = new Artifact({x:0,y:0}, 'lower', 'perfectly clean white pants', 1000, 100000);
+        artifacts.push(artifact2);
+        keywords.push(artifact2.name);
 
-        artifact = new Artifact({x:0,y:0}, 'upper', 'pure white coat with a high collar and golden buttons', 1000, 100000);
-        artifacts.push(artifact);
-        keywords.push(artifact.name);
+        let artifact3 = new Artifact({x:0,y:0}, 'upper', 'pure white coat with a high collar and golden buttons', 1000, 100000);
+        artifacts.push(artifact3);
+        keywords.push(artifact3.name);
 
-        artifact = new Artifact({x:0,y:0}, 'hat', 'white hood with intricate black markings', 1000, 100000);
-        artifacts.push(artifact);
-        keywords.push(artifact.name);
+        let artifact4 = new Artifact({x:0,y:0}, 'hat', 'white hood with intricate black markings', 1000, 100000);
+        artifacts.push(artifact4);
+        keywords.push(artifact4.name);
 
-        artifact = new Artifact({x:0,y:0}, 'cape', 'jet black cape strung from golden chains', 1000, 100000);
-        artifacts.push(artifact);
-        keywords.push(artifact.name);
+        let artifact5 = new Artifact({x:0,y:0}, 'cape', 'jet black cape strung from golden chains', 1000, 100000);
+        artifacts.push(artifact5);
+        keywords.push(artifact5.name);
 
         // let goal = new Goal(player.name, 'kill '+player.name);
         // goals.push(goal);
@@ -2291,38 +2473,47 @@ function seedCharacters(){
     //middle monsters and lesser monsters on desert and tundra
     //superior monsters on dungeons and swamps
     createMonsters = function(){
+        //spawn normal monsters
         for (i=1; i<sizeX;i++){
             for (j=1; j<sizeY; j++){
                 if (grid[i][j].water == false && grid[i][j].mountain == false){
+
+                    //creatures
+                    let roll = getRand(0,15);
+                    if (roll == 1 && grid[i][j].Dungeon == false && grid[i][j].town == false && grid[i][j].road == false){
+                        spawnCreature(i,j,goals=undefined);
+                    }
+
+                    //monsters
                     if (grid[i][j].Dungeon == true){
                         spawnSuperiorM(i,j,goals=undefined);
                     }
                     else if (grid[i][j].grassland == true){
-                        let roll = getRand(0,3);
+                        let roll = getRand(0,5);
                         if (roll == 1){
                             spawnMinorM(i,j,goals=undefined);
                         }
                     }
                     else if (grid[i][j].tundra == true){
-                        let roll = getRand(0,2);
+                        let roll = getRand(0,3);
                         if (roll == 1){
                             spawnMiddleM(i,j,goals=undefined);
                         }
                     }
                     else if (grid[i][j].desert == true){
-                        let roll = getRand(0,1);
+                        let roll = getRand(0,2);
                         if (roll == 1){
                             if (roll == 1){
                                 spawnMiddleM(i,j,goals=undefined);
                             }
-                            roll = getRand(0,1);
+                            roll = getRand(0,2);
                             if (roll == 1){
                                 spawnMinorM(i,j,goals=undefined);
                             }
                         }
                     }
                     else if (grid[i][j].swamp == true){
-                        let roll = getRand(0,1);
+                        let roll = getRand(0,2);
                         if (roll == 1){
                             spawnSuperiorM(i,j,goals=undefined);
                         }
@@ -2330,6 +2521,34 @@ function seedCharacters(){
                 }
             }
         }
+        //Spawn Legendary Monsters
+        for (i=0;i<legendmon;i++){
+            let flag = true;
+            while(flag){
+                flag = false;
+                var roll1 = getRand(2, sizeX-2);
+                var roll2 = getRand(2, sizeY-2);
+                if (grid[roll1][roll2].mountain == true || grid[roll1][roll2].water == true || grid[roll1][roll2].town == true || grid[roll1][roll2].road == true){
+                    flag = true;
+                }
+            }
+            spawnMonsterLegend(roll1, roll2, goals=undefined);
+        }
+
+        //Spawn Legendary Creatures
+        for (i=0;i<legendcreat;i++){
+            let flag = true;
+            while(flag){
+                flag = false;
+                var roll1 = getRand(2, sizeX-2);
+                var roll2 = getRand(2, sizeY-2);
+                if (grid[roll1][roll2].mountain == true || grid[roll1][roll2].water == true || grid[roll1][roll2].town == true || grid[roll1][roll2].road == true){
+                    flag = true;
+                }
+            }
+            spawnCreatureLegend(roll1, roll2, goals=undefined);
+        }
+
     }
 
     createBandits = function(){
@@ -2392,6 +2611,6 @@ dispGrid();
 console.log(towns);
 console.log(Dungeons);
 console.log('---------');
-simulate(0, 50);
+simulate(0, 100);
 console.log('done');
 //playgame();
