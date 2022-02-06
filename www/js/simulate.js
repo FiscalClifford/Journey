@@ -56,7 +56,7 @@ var simulate = function(yeers, days){
                     target = town.loc;
                 }
             }
-            for (dung of Dungeons){
+            for (dung of dungeons){
                 if (dung.name == target){
                     target = dung.loc;
                 }
@@ -66,6 +66,16 @@ var simulate = function(yeers, days){
                     target = person.loc;
                 }
             }
+            for (mark of landmarks){
+                if (mark.name == target){
+                    target = mark.loc;
+                }
+            }
+        }
+
+        if (target.x == undefined && target.y == undefined){
+            console.long('!!!!!!!!error with targeting!!!!!!!!');
+            return;
         }
         console.log(goal.keyword+' position is: '+target.x+','+target.y);
         if (target.x == char.loc.x && target.y == char.loc.y){
@@ -167,7 +177,6 @@ var simulate = function(yeers, days){
                         char.goals.unshift(new Goal('here', 'rest'));
                     }
                     else{
-                        
                         //char.goals.unshift(new Goal(char.hometown.name, 'live'));
                         char.goals.unshift(new Goal(char.hometown.name, 'rest'));
                     } 
@@ -178,7 +187,6 @@ var simulate = function(yeers, days){
                 let roll = getRand(0,4);
                 if (roll == 1){
                     //go to a town
-                    
                     let destination = towns[getRand(0,towns.length-1)];
                     char.goals.unshift(new Goal(destination.name, 'travel'));
                     char.goals.unshift(new Goal(destination.name, 'rest'));
@@ -187,46 +195,53 @@ var simulate = function(yeers, days){
                     char.goals.unshift(new Goal(char.name, 'timedWander'));
                 }
                 else {
-                    //go to a dungeon
-                    
-                    let destination = Dungeons[getRand(0,Dungeons.length-1)];
-                    char.goals.unshift(new Goal(destination.name, 'travel'));
-                    char.goals.unshift(new Goal(destination.name, 'rest'));
+                    //go to a dungeon or landmark
+                    let roll2 = getRand(0,1);
+                    if (roll2 == 1){
+                        let destination = dungeons[getRand(0,dungeons.length-1)];
+                        char.goals.unshift(new Goal(destination.name, 'travel'));
+                        char.goals.unshift(new Goal(destination.name, 'rest'));
+                    }
+                    else{
+                        let destination = landmarks[getRand(0,landmarks.length-1)];
+                        char.goals.unshift(new Goal(destination.name, 'travel'));
+                        char.goals.unshift(new Goal(destination.name, 'rest'));
+                    }
                 }
                 
             }
             if (containsItem(legends, char.name) && char.goals.length < 2){
                 
-                let roll = getRand(0,19);
+                let roll = getRand(0,9);
                 if (roll == 1){
                     //go to a town
-                    
                     let destination = towns[getRand(0,towns.length-1)];
                     char.goals.unshift(new Goal(destination.name, 'travel'));
                     char.goals.unshift(new Goal(destination.name, 'rest'));
                 }
-                else if (roll == 2 || roll == 3 || roll == 4){
+                else if (roll == 2){
                     char.goals.unshift(new Goal(char.name, 'timedWander'));
                 }
                 else {
-                    //go to a dungeon
-                    
-                    let destination = Dungeons[getRand(0,Dungeons.length-1)];
-                    char.goals.unshift(new Goal(destination.name, 'travel'));
-                    char.goals.unshift(new Goal(destination.name, 'rest'));
+                    //go to a dungeon or landmark
+                    let roll2 = getRand(0,1);
+                    if (roll2 == 1){
+                        let destination = dungeons[getRand(0,dungeons.length-1)];
+                        char.goals.unshift(new Goal(destination.name, 'travel'));
+                        char.goals.unshift(new Goal(destination.name, 'rest'));
+                    }
+                    else{
+                        let destination = landmarks[getRand(0,landmarks.length-1)];
+                        char.goals.unshift(new Goal(destination.name, 'travel'));
+                        char.goals.unshift(new Goal(destination.name, 'rest'));
+                    }
                 }
-            
             }
         }
         else{
             //move towards destination
-          
             let path = findPath(char.loc, target);
-            //console.log(path);
             char.actions.push(new Goal(path[1], 'move'));
-            
-            
-        
         }
     }
 
@@ -372,7 +387,7 @@ var simulate = function(yeers, days){
                 }
             }
         }
-        for (dung of Dungeons){
+        for (dung of dungeons){
             if (dung.name == targetKey){
                 
                 target = dung;
@@ -464,10 +479,12 @@ var simulate = function(yeers, days){
     }
 
     fight = function(char, goal){
+        //this is the most difficult and intricate component of the whole project.
+
         //differentiate between monster fight and human fight
         //make sure party members are involved
         //everyones opinions on both sides change based on their opinions of both (do this before bystander help)
-        //bystanders help vs monsters
+        //bystanders are eager to help vs monsters
         //bystanders help those they really like >60
         //once everyone is in the party and its time to fight, if one side is far lower strength than the other then they run
         //dying has very low chance of happening unless huge strength descrepency
@@ -579,7 +596,7 @@ var simulate = function(yeers, days){
             console.log(p2Party);
             
             //decide if p1 runs
-            if (score1 < score2-30){
+            if (score1 < Math.round(score2-(score2/10))){
                 let roll = getRand(0,2);
                 if (roll != 2){
                     console.log(p1Party[0].name+' running away');
@@ -590,6 +607,22 @@ var simulate = function(yeers, days){
                 }
             }
             //fight
+
+            //create a landmark if powerful enough
+            if ((p1.strength > 999 && p2.strength > 999) || (score1 > 2999 && score2 > 2999)){
+                console.log('creatle landmark as a result of the battle');
+                let i = char.loc.x.valueOf();
+                let j = char.loc.y.valueOf();
+                let mark = new Landmark(battlemarkNames[getRand(0,battlemarkNames.length-1)], {x:i,y:j}, 'evidence of the epic battle between '+p1.name+' and '+p2.name+'.');
+                landmarks.push(mark);
+                keywords.push(mark.name);
+                grid[i][j].landmark = true;
+                for (dude of characters){
+                    dude.opinions.push(new Opinion(mon.weapon, getRand(-10,30), true));
+                }
+                mem = new KeyMemory(day, [p1.name, p2.name], {x:i,y:j}, 'a landmark was created as a result of an epic battle', 'indifferent');
+                history.push(mem);
+            }
 
             let roll = getRand(1,p1Party.length);
             let p1Final = [];
@@ -1095,7 +1128,7 @@ var simulate = function(yeers, days){
             }
 
             //decide if p1 runs
-            if (score1 < score2-30){
+            if (score1 < Math.round(score2-(score2/10))){
                 let roll = getRand(0,2);
                 if (roll != 2){
                     partyRunAway(p1Party);
@@ -1106,7 +1139,7 @@ var simulate = function(yeers, days){
                 }
             }
             //decide if p2 runs
-            if (score2 < score1-30){
+            if (score2 < Math.round(score1-(score1/10))){
                 let roll = getRand(0,2);
                 if (roll != 2){
                     partyRunAway(p2Party);
@@ -1117,6 +1150,22 @@ var simulate = function(yeers, days){
                 }
             }
             //fight
+
+            //create a landmark if powerful enough
+            if ((p1.strength > 999 && p2.strength > 999) || (score1 > 2999 && score2 > 2999)){
+                console.log('creatle landmark as a result of the battle');
+                let i = char.loc.x.valueOf();
+                let j = char.loc.y.valueOf();
+                let mark = new Landmark(battlemarkNames[getRand(0,battlemarkNames.length-1)], {x:i,y:j}, 'evidence of the epic battle between '+p1.name+' and '+p2.name+'.');
+                landmarks.push(mark);
+                keywords.push(mark.name);
+                grid[i][j].landmark = true;
+                for (dude of characters){
+                    dude.opinions.push(new Opinion(mon.weapon, getRand(-10,30), true));
+                }
+                mem = new KeyMemory(day, [p1.name, p2.name], {x:i,y:j}, 'a landmark was created as a result of an epic battle', 'indifferent');
+                history.push(mem);
+            }
             
             let roll = getRand(1,p1Party.length);
             let p1Final = [];
@@ -1499,7 +1548,13 @@ var simulate = function(yeers, days){
 
     checkGoals = function(char){
         //GOALS are taken care of one at a time, until deemed complete. ACTIONS are all checked each turn in order to accomplish goals.
-        console.log(char.goals);
+       
+        //Just in case empty
+        if (char.goals.length<1){
+            g = new Goal(char.hometown.name,'travel');
+            char.goals.unshift(g);
+        }
+
         let goal = char.goals[0];
 
         //remove duplicates
@@ -1507,8 +1562,10 @@ var simulate = function(yeers, days){
             if (char.goals[g].keyword == char.goals[g+1].keyword && char.goals[g].action == char.goals[g+1].action){
                 char.goals.splice(g+1,1);
             }
-            
         }
+
+       
+
         //console.log(goal);
         switch (goal.action){
             
@@ -1561,6 +1618,8 @@ var simulate = function(yeers, days){
     }
 
     takeAction = function(char){
+
+        //make sure no extra actions are taken if battled
         let wipeFlag = false;
         for (g of char.goals){
             if (g.action == 'fight'){
@@ -1580,30 +1639,19 @@ var simulate = function(yeers, days){
             }
         }
 
-        
+           //Just in case empty
+        if (char.actions.length<1){
+            g = new Goal('skip','skip');
+            char.actions.unshift(g);
+            return;
+        }
 
         for (goal of char.actions){
             let target = goal.keyword;
             switch (goal.action){
                 
                 case 'move'://///////////////////////////////////////////////
-                 
-                    
-                    if (containsItem(keywords, target)){
-                        //target is not a loc, but actually a keyword
-                        for (town of towns){
-                            if (town.name == target){
-                                target = town.loc;
-                                
-                            }
-                        }
-                        for (dung of Dungeons){
-                            if (dung.name == target){
-                                target = dung.loc;
-                                
-                            }
-                        }
-                    }
+
                     console.log('Move called. Moving from '+char.loc.x+','+char.loc.y+' to '+target.x+','+target.y)
 
                     let x = target.x;
@@ -1616,8 +1664,6 @@ var simulate = function(yeers, days){
                         char.loc.y = y;
                     }
                     break; 
-
-                
 
                 case 'skip'://///////////////////////////////////////////////////
                     console.log(char.name+' is skipping turn');
@@ -2372,7 +2418,7 @@ var simulate = function(yeers, days){
         }
         else{
             let fulltitles = ['The Hero of '+character.hometown.name, 'The Savior of '+character.hometown.name, 'The Legend of '+character.hometown.name, 
-            Dungeons[getRand(0,Dungeons.length-1)].name+'\'s Warden', Dungeons[getRand(0,Dungeons.length-1)].name+'\'s Tyrant', Dungeons[getRand(0,Dungeons.length-1)].name+'\'s Watcher', 
+            dungeons[getRand(0,dungeons.length-1)].name+'\'s Warden', dungeons[getRand(0,dungeons.length-1)].name+'\'s Tyrant', dungeons[getRand(0,dungeons.length-1)].name+'\'s Watcher', 
             'The '+character.haircolor+' Pheonix', 'The '+character.haircolor+' Fox', 'The '+character.haircolor+' Hawk', 'The '+character.haircolor+' Lion', 'The '+character.haircolor+' Shark', 
             'The '+character.haircolor+' Eagle', 'The '+character.haircolor+' Bear', 'The '+character.haircolor+' Snake', 'The '+character.haircolor+' Menace', 'The '+character.haircolor+' Hero', 'The '+character.eyecolor+' eyed Master'];
 
@@ -2799,6 +2845,36 @@ var simulate = function(yeers, days){
             }
         }
 
+        //notice a legendary monster or creature nearby
+        for (monster of monsters){
+            if (monster.loc.x == me.loc.x && monster.loc.y == me.loc.y){
+                if (containsItem(legendaryMonsters, monster.name) || containsItem(legendaryCreatures, monster.name)){
+                    //let emotion = getEmobyStrength(me, monster);
+                    mem = new KeyMemory(day, [me.name, monster.name], {x:me.loc.x.valueOf(),y:me.loc.y.valueOf()}, 'I witnessed '+monster.name+' close nearby!', 'amazed');
+                    me.keyMemories.push(mem); 
+                    history.push(mem);
+                }
+            }
+        }
+
+        //notice a legendary monster or creature in the distance
+        dist = 1;
+        for (i=(me.loc.x.valueOf()-dist); i<=(me.loc.x.valueOf()+dist);i++){
+            for (j=(me.loc.y.valueOf()-dist); j<=(me.loc.y.valueOf()+dist);j++){
+                if (me.loc.x.valueOf() != i && me.loc.y.valueOf() != j){
+                    for (monster of monsters){
+                        if (monster.loc.x.valueOf() == i && monster.loc.y.valueOf() == j){
+                            if (containsItem(legendaryMonsters, monster.name) || containsItem(legendaryCreatures, monster.name)){
+                                mem = new KeyMemory(day, [me.name, monster.name], {x:me.loc.x.valueOf(),y:me.loc.y.valueOf()}, 'I witnessed '+monster.name+' far in the distance.', 'amazed');
+                                me.keyMemories.push(mem); 
+                                history.push(mem);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         //notice a bandit nearby
         for (near of nearby){
             if (containsItem(bandits, near.name)){
@@ -2899,7 +2975,7 @@ var simulate = function(yeers, days){
 
             }
             console.log(towns);
-            console.log(Dungeons);
+            console.log(dungeons);
 
             //+++++++++++++++++++++++++++++++++++++++++++++++++++ monster logic +++++++++++++++++++++++++++++++++
             console.log('monsters');
@@ -3063,7 +3139,7 @@ var simulate = function(yeers, days){
                 let j = getRand(1,sizeY-2);
                 if (grid[i][j].road == false && grid[i][j].town == false && grid[i][j].mountain == false && grid[i][j].water == false){
                     
-                    if (grid[i][j].Dungeon == true){
+                    if (grid[i][j].dungeon == true){
                         spawnSuperiorM(i,j,goals=undefined);
                     }
                     else if (grid[i][j].grassland == true){
@@ -3095,7 +3171,7 @@ var simulate = function(yeers, days){
         }      
 
         //replenish monsters and artifacts at dungeons after 50 days
-        for (dung of Dungeons){
+        for (dung of dungeons){
             let flag = false;
             for (arti of artifacts){
                 if (arti.loc.x == dung.loc.x && arti.loc.y == dung.loc.y){

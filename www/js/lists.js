@@ -241,11 +241,17 @@ var titles = ['The Nightingale', 'The Majestic', 'The Brave', 'The Swift', 'The 
 'The Avenger',  'The Vanquisher', 'The Bloodstained', 'The Starkindler', 'The Adjuticator', 'The Legendary', 'The Northstrider', 'The Bladmaster', 'The Golden Reverend', 
 'The Eastern Seer', 'The Western Force', 'The Will of the South', 'The Sage of the Desert', 'The Shrouded Shaman', 'Emperor of Ash', 'Skullbreaker', 'The Blessed Captain', 'The Virtuous', 'Dreamcatcher'];
 
-var dungeonNames = ['Castle of Doom', 'Hall of Souls', "Spire of Reckoning", 'Pit of Dispair', 'Citadel of Madness', 'Tower of Steel', 'Caves of the prophet', 'Jungle of despair', 'The Abyss',
-'Chamber of the Lost Wanderer', 'Labyrinth of the Lost', 'Orsteds Abandoned Throne', 'Vault of Wonders', 'The Grim Grotto', 'The Cliffs of Ire', 'Kingslayer Keep', 'The Jagged Ruins',
-'Catacombs of the Fallen', 'Defunct World Portal', 'The Beacon of Infinite Light', 'Ruins of a Lost City', 'Stonehenge', 'Garden of Statues', 'The Black Lair', 'The Crypt of shadows', 'The Twilight Caverns',
-'The Black Tower', 'The Silver Spire', 'The Ivory Tower', 'The Sinister Spire', 'The Haunted Garden', 'The Realm of Regrets', 'The Mysterious Maze', 'The Foggy Moore', 'The Wailing Castle', 'The Haunted Battlefield',
-'The Abandoned Mine', 'The Forest of Fallen Giants', 'Fortress of the Sun', 'Fortress of the Moon', 'Spire of the Eclipse'];
+var dungeonNames = ['The Castle of Doom', 'The Hall of Souls', "The Spire of Reckoning", 'The Pit of Dispair', 'The Citadel of Madness', 'The Tower of Rust', 'The Caves of the prophet', 'The Jungle of despair', 'The Abyss',
+'The Chamber of the Forsaken', 'The Labyrinth of the Lost', "Orsted's Abandoned Throne", 'The Vault of Wonders', 'The Grim Grotto', 'The Cliffs of Ire', 'The Kingslayer Keep', 'The Jagged Ruins',
+'Catacombs of the Fallen', 'The Beacon of Darkness', 'The Garden of Weeping Statues', 'The Black Lair', 'The Crypt of shadows', 'The Twilight Caverns',
+'The Black Tower', 'The Grim Graveyard', 'The Sinister Spire', 'The Haunted Garden', 'The Realm of Regrets', 'The Mysterious Maze', 'The Foggy Moore', 'The Wailing Castle', 'The Haunted Battlefield',
+'The Haunted Mine', 'The Fortress of the Sun', 'The Fortress of the Moon', 'Dungeon of the Eclipse', 'Dungeon of Despair', "Liar's Labrynth"];
+
+var landmarkNames = ['Defunct World Portal', 'Ruins of a Lost City', 'Stonehenge', 'The Ivory Tower', 'The Forest of Fallen Giants', 'The Spirit Temple', 'The Crystal Palace', 'Garden of Giant Orchids',
+'Abandoned Temple', "Orsted's Tree", 'The Golden Doors', 'Statue of a Hero', 'The Twilight Gate', 'The Infinite Waterfall', 'Giant Ribcage', 'The Ultra Sword', 'The Forest Temple', 'The Dream Sphere', 
+'Ancient Battlefield', 'Dragon Skull', 'The Golden Pyramid', 'The Diamond Pillar'];
+
+var battlemarkNames = ['Massive crater', 'scorched remnants', 'scattered bones', 'scar in the landscape', 'shredded hillside'];
 
 var artifactNames = ['Erolith','Uritris','Elphine','Aywin','Grequinal','Folduin','Yesjyre','Delmuth','Glynlana','Aiduin','Caicaryn','Aolis','Xyrrora','Giullis','Venris','Yesanith','Reystina','Shyrrik',
 'Elasandoral','Ariawyn','Bryvalur','Zylyarus','Haldir','Gentoris','Ruvyn','Carnala','Eldrin','Kelzeiros','Bellas','Nerijeon','Vamir','Ilinala','Eldaerenth','Balren','Elion','Wynharice','Riluaneth',

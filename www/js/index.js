@@ -263,7 +263,8 @@ function dispGrid(){
     for (i=0;i<sizeX;i++){
         arr = '';
         for (j=0;j<sizeY;j++){
-            if (grid[i][j].Dungeon == true){arr = arr+' @ ';}
+            if (grid[i][j].dungeon == true){arr = arr+' @ ';}
+            else if (grid[i][j].landmark == true){arr = arr+' O ';}
             else if (grid[i][j].town == true){arr = arr+' X ';}
             else if (grid[i][j].road == true){arr = arr+' # ';}
             else if (grid[i][j].water == true){arr = arr+' W ';}
@@ -320,12 +321,14 @@ function getEmobyStrength(char1, char2){
 var sizeX = 30;
 var sizeY = 30;
 var townTotal = 6;
-var DungeonTotal = 8;
+var dungeonTotal = 8;
+var landmarkTotal = 6;
 var passes = 2;
 var grid = createGrid(sizeX);
 
 var towns = [];
-var Dungeons = [];
+var dungeons = [];
+var landmarks = [];
 var keywords = [];
 var characters = [];
 var merchants = [];
@@ -366,9 +369,10 @@ class Tile {
         this.town = false,
         this.swampy = false,
         this.tundra = false,
-        this.ruins = false,
+        //this.ruins = false,
         this.desert = false,
-        this.Dungeon = false,
+        this.dungeon = false,
+        this.landmark = false,
         this.trees = 'sparse', // none, sparse, moderate, forest
         this.rocks = 'sparse', // none, sparse, moderate, rocky
         this.wildlife = 'sparse', // none, sparse, moderate, flourishing
@@ -427,12 +431,12 @@ class Tile {
     }
 };
 
-//Dungeon Functions      ----------------------------------------------------------------
-function chooseDungeonName(){
+//dungeon Functions      ----------------------------------------------------------------
+function choosedungeonName(){
     let mark = getRand(0, dungeonNames.length-1);
     return dungeonNames.splice(mark,1).toString();
 }
-function chooseDungeonPlace(){
+function choosedungeonPlace(){
     let spot = new Loc();
     spot.x = getRand(1, sizeX-1);
     spot.y = getRand(1, sizeY-1);
@@ -443,7 +447,32 @@ function chooseDungDesc(){
 }
 
 class Dungeon{
-    constructor(name=chooseDungeonName(), loc=chooseDungeonPlace(), description=chooseDungDesc(), countdown=50){
+    constructor(name=choosedungeonName(), loc=choosedungeonPlace(), description=chooseDungDesc(), countdown=50){
+        this.name = name,
+        this.loc = loc,
+        this.description = description,
+        this.countdown = countdown
+    }
+}
+
+//Landmark Functions      ----------------------------------------------------------------
+function chooseLandmarkName(){
+    let mark = getRand(0, landmarkNames.length-1);
+    return landmarkNames.splice(mark,1).toString();
+}
+function chooseLandmarkPlace(){
+    let spot = new Loc();
+    spot.x = getRand(1, sizeX-1);
+    spot.y = getRand(1, sizeY-1);
+    return spot;
+}
+function chooseLandmarkDesc(){
+    return 'A very enlightening place';
+    //write my own? Use gpt3? Also, ultra sword is massive and stuck into the ground. Super huge.
+}
+
+class Landmark{
+    constructor(name=chooseLandmarkName(), loc=chooseLandmarkPlace(), description=chooseLandmarkDesc(), countdown=50){
         this.name = name,
         this.loc = loc,
         this.description = description,
@@ -1213,7 +1242,7 @@ class Goal{
 
 //A Key Memory is something that happened in the past that left an impression on the character. Examples: 
 //Fighting or being attacked
-//visiting a town or Dungeons
+//visiting a town or dungeons
 //meeting a big 8 character or ruler
 //finding an artifact
 //someone they liked and was familiar with died
@@ -1530,6 +1559,87 @@ function seedTowns(){
     }
 }
 
+function seedLandmarks(){
+
+    var dist = (((sizeX + sizeY)/2)/10);
+    if (dist <2){dist = 2;}
+
+    let z = 0; 
+    let counter = 0;
+
+    while(z<landmarkTotal){
+        var roll1 = getRand(1,(sizeX-2));
+        var roll2 = getRand(1,(sizeY-2));
+        //console.log("checking: "+roll1+","+roll2);
+        if (grid[roll1][roll2].water == false && grid[roll1][roll2].mountain == false && grid[roll1][roll2].town == false && grid[roll1][roll2].dungeon == false){
+            var tooclose = false; //flag
+            for (i=(roll1-dist); i<=(roll1+dist);i++){
+                for (j=(roll2-dist); j<=(roll2+dist);j++){
+                    //check if looking outside bounds
+                    if ((i<0) || (i>(sizeX-1)) || (j<0) || (j>(sizeY-1))){
+                        continue;
+                    }
+                    if (grid[i][j].landmark == true){
+                        tooclose = true;
+                        //console.log("too close!");
+                    }
+                }
+            }
+            if (tooclose == false){
+                //console.log("town created at: "+ roll1 + " , " + roll2);
+                grid[roll1][roll2].landmark = true;
+                let place = new Loc();
+                place.x = roll1;
+                place.y = roll2;
+                let mark = new Landmark(undefined, place, undefined);
+                landmarks.push(mark);
+                keywords.push(mark.name);
+                z++;
+                
+            }
+        }
+        counter ++;
+        //if impossible to make more towns
+        if (counter > (sizeX*sizeY)){
+            z = (landmarkTotal + 1);
+        }
+    }
+
+    //each town needs to be accessible
+    for (town1 of towns){
+        for (town2 of landmarks){
+            if (town1.name != town2.name){
+                console.log('~~~')
+                console.log(town1.loc);
+                console.log(town2.loc);
+                let route = findPath(town1.loc, town2.loc);
+                if (route == false){
+                    let bulldozer = findPathFlying(town1.loc, town2.loc);
+                    console.log(bulldozer);
+                    if (bulldozer != false){
+                        for (tile of bulldozer){
+                            let x = tile.x; 
+                            let y = tile.y;
+                            grid[x][y].mountain = false;
+                            grid[x][y].water = false;
+                            grid[x][y].grassland = true;
+                            grid[x][y].tundra = false;
+                            grid[x][y].desert = false;
+                            grid[x][y].swamp = false;
+                            grid[x][y].setRocks(1);
+                            grid[x][y].setTrees(4);
+                            grid[x][y].setWildlife(4);
+                            grid[x][y].setFlowers(2);
+                        }
+                    }else{
+                        console.log('couldnt find route????');
+                    }
+                }
+            }
+        }
+    }
+}
+
 function seedDungeons(){
  
     var dist = (((sizeX + sizeY)/2)/10);
@@ -1538,7 +1648,7 @@ function seedDungeons(){
     var q = 0; 
     var counter = 0;
    
-    while(q<DungeonTotal){
+    while(q<dungeonTotal){
         var roll1 = getRand(1,(sizeX-2));
         var roll2 = getRand(1,(sizeY-2));
         //console.log("checking: "+roll1+","+roll2);
@@ -1552,20 +1662,20 @@ function seedDungeons(){
                         //console.log("out of bounds");
                         continue;
                     }
-                    if (grid[i][j].Dungeon == true){
+                    if (grid[i][j].dungeon == true){
                         tooclose = true;
                         //console.log("too close!");
                     }
                 }
             }
             if (tooclose == false){
-                //console.log("Dungeon created at: "+ roll1 + " , " + roll2);
-                grid[roll1][roll2].Dungeon = true;
+                //console.log("dungeon created at: "+ roll1 + " , " + roll2);
+                grid[roll1][roll2].dungeon = true;
                 let place = new Loc();
                 place.x = roll1;
                 place.y = roll2;
                 let mark = new Dungeon(undefined, place, undefined);
-                Dungeons.push(mark);
+                dungeons.push(mark);
                 keywords.push(mark.name);
 
                 //create artifacts!
@@ -1581,11 +1691,11 @@ function seedDungeons(){
         counter ++;
         //if impossible to make more dungeons
         if (counter > (sizeX*sizeY)){
-            q = (DungeonTotal + 1);
+            q = (dungeonTotal + 1);
         }
     }
         //each dungeon needs to be accessible
-        for (dun1 of Dungeons){
+        for (dun1 of dungeons){
             for (town2 of towns){
                 if (dun1.name != town2.name){
                     console.log('~~~')
@@ -2127,7 +2237,7 @@ function spawnMerchant(town, age=undefined, empty, empty2){
 
 function spawnAdventurer(town, age=undefined, empty, empty2){
     let goals = [];
-    let target = Dungeons[getRand(0,Dungeons.length-1)];
+    let target = dungeons[getRand(0,dungeons.length-1)];
     let goal = new Goal(target.name, 'travel');
     goals.unshift(goal);
     goal = new Goal(town.name, 'rest');
@@ -2171,7 +2281,7 @@ function spawnAdventurer(town, age=undefined, empty, empty2){
 
 function spawnLegend(town, empty, empty2){
     let goals = [];
-    let target = Dungeons[getRand(0,Dungeons.length-1)];
+    let target = dungeons[getRand(0,dungeons.length-1)];
     let goal = new Goal(target.name, 'travel');
     goals.unshift(goal);
     goal = new Goal(town.name, 'rest');
@@ -2228,7 +2338,7 @@ function spawnLegend(town, empty, empty2){
     }
     else{
         let fulltitles = ['The Hero of '+town.name, 'The Savior of '+town.name, 'The Legend of '+town.name, 
-            Dungeons[getRand(0,Dungeons.length-1)].name+'\'s Warden', Dungeons[getRand(0,Dungeons.length-1)].name+'\'s Tyrant', Dungeons[getRand(0,Dungeons.length-1)].name+'\'s Watcher', 
+            dungeons[getRand(0,dungeons.length-1)].name+'\'s Warden', dungeons[getRand(0,dungeons.length-1)].name+'\'s Tyrant', dungeons[getRand(0,dungeons.length-1)].name+'\'s Watcher', 
             'The '+haircolor+' Pheonix', 'The '+haircolor+' Fox', 'The '+haircolor+' Hawk', 'The '+haircolor+' Lion', 'The '+haircolor+' Shark', 
             'The '+haircolor+' Eagle', 'The '+haircolor+' Bear', 'The '+haircolor+' Snake', 'The '+haircolor+' Menace', 'The '+haircolor+' Hero', 'The '+eyecolor+' eyed Master'];
 
@@ -2384,7 +2494,7 @@ function seedCharacters(){
     }
 
     //adventurers
-    //travel between Dungeons, occasionally rest at a town
+    //travel between dungeons, occasionally rest at a town
     createAdventurers = function(){
         for (town of towns){
             for (i=0; i<adventies;i++){
@@ -2396,7 +2506,7 @@ function seedCharacters(){
     }
 
     //Legends (the best of these will become the big 8)
-    //travel between Dungeons, occasionally rest at a town
+    //travel between dungeons, occasionally rest at a town
     createLegends = function(){
         for (town of towns){
             for (i=0; i<2;i++){
@@ -2408,9 +2518,9 @@ function seedCharacters(){
     }
 
     //ORSTED THE ANNHILIATOR
-    //travels between Dungeons and towns, hunting down the player.
+    //travels between dungeons and towns, hunting down the player.
     createOrsted = function(){
-        let startloc = Dungeons[getRand(0,Dungeons.length-1)];
+        let startloc = dungeons[getRand(0,dungeons.length-1)];
         let gender = 'male';
         let goals = [];
 
@@ -2436,7 +2546,7 @@ function seedCharacters(){
 
         // let goal = new Goal(player.name, 'kill '+player.name);
         // goals.push(goal);
-        let target = Dungeons[getRand(0,Dungeons.length-1)];
+        let target = dungeons[getRand(0,dungeons.length-1)];
         goal = new Goal(target.name, 'travel');
         goals.unshift(goal);
 
@@ -2480,12 +2590,12 @@ function seedCharacters(){
 
                     //creatures
                     let roll = getRand(0,15);
-                    if (roll == 1 && grid[i][j].Dungeon == false && grid[i][j].town == false && grid[i][j].road == false){
+                    if (roll == 1 && grid[i][j].dungeon == false && grid[i][j].town == false && grid[i][j].road == false){
                         spawnCreature(i,j,goals=undefined);
                     }
 
                     //monsters
-                    if (grid[i][j].Dungeon == true){
+                    if (grid[i][j].dungeon == true){
                         spawnSuperiorM(i,j,goals=undefined);
                     }
                     else if (grid[i][j].grassland == true){
@@ -2592,9 +2702,13 @@ function generateWorld(){
     console.log("building towns...");
     seedTowns();
 
-    //init Dungeons
-    console.log("creating Dungeons...");
+    //init dungeons
+    console.log("creating dungeons...");
     seedDungeons();
+
+    //init landmarks
+    console.log("creating Landmarks...");
+    seedLandmarks();
 
     //build roads
     console.log("building roads...");
@@ -2609,7 +2723,7 @@ function generateWorld(){
 generateWorld();
 dispGrid();
 console.log(towns);
-console.log(Dungeons);
+console.log(dungeons);
 console.log('---------');
 simulate(0, 100);
 console.log('done');
