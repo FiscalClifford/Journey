@@ -2725,6 +2725,6 @@ dispGrid();
 console.log(towns);
 console.log(dungeons);
 console.log('---------');
-simulate(0, 100);
+simulate(0, 10);
 console.log('done');
 //playgame();

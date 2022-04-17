@@ -2957,6 +2957,8 @@ var simulate = function(yeers, days){
     var kiloYear = 0;
     var legmontimer = 0;
 
+    //MAIN LOOP
+
     for (day=0; day<days; day++){
         console.log('day '+day);
         var big8 = getbig8();
